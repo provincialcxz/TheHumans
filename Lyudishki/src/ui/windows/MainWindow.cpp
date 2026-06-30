@@ -366,7 +366,11 @@ void MainWindow::onAddGroup()
                                           "Название группы:", QLineEdit::Normal, "", &ok);
     if (!ok || name.trimmed().isEmpty()) return;
 
-    m_ctx.groupService()->addGroup(name.trimmed());
+    int gid = m_ctx.groupService()->addGroup(name.trimmed());
+    if (gid <= 0) {
+        QMessageBox::warning(this, "Группы", "Группа с таким именем уже существует.");
+        return;
+    }
     populateGroups();
     ui->groupList->setCurrentRow(-1);
     ui->groupList->clearSelection();
@@ -383,6 +387,12 @@ void MainWindow::onDeleteGroup()
     auto groups = m_ctx.groupService()->getAllGroups();
     int groupIdx = row - 1;
     if (groupIdx >= groups.size()) return;
+
+    if (groups.size() <= 1) {
+        QMessageBox::information(this, "Группы",
+            "Нельзя удалить последнюю группу — добавлять людей будет некуда.");
+        return;
+    }
 
     const Group &g = groups[groupIdx];
     auto people = m_ctx.peopleService()->getPeopleInGroup(g.id);
