@@ -24,6 +24,7 @@ public:
 
     PersonProfile loadProfile(int personId);
     bool saveProfile(const PersonProfile &profile);
+    QMap<int, QString> getReliabilityMap();
 
     QVector<SocialAccount> getSocialAccounts(int personId);
     int addSocialAccount(const SocialAccount &account);

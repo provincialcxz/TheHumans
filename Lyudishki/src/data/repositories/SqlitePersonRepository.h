@@ -16,6 +16,7 @@ public:
 
     PersonProfile loadProfile(int personId) override;
     bool saveProfile(const PersonProfile &profile) override;
+    QMap<int, QString> getReliabilityMap() override;
 
     QVector<SocialAccount> getSocialAccounts(int personId) override;
     int addSocialAccount(const SocialAccount &account) override;

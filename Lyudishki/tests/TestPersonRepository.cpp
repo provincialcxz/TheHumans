@@ -258,6 +258,41 @@ private slots:
         QCOMPARE(loaded.clothingSize, "L");
         QCOMPARE(loaded.favoriteFood, "Пицца");
     }
+
+    void testReliabilityMap()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        SqlitePersonRepository repo(dbm.database());
+
+        Person p1;
+        p1.groupId = 1;
+        p1.firstName = "A";
+        p1.lastName = "Reliable";
+        int pid1 = repo.add(p1);
+
+        Person p2;
+        p2.groupId = 1;
+        p2.firstName = "B";
+        p2.lastName = "Unreliable";
+        int pid2 = repo.add(p2);
+
+        PersonProfile prof1;
+        prof1.personId = pid1;
+        prof1.reliability = "Высокая";
+        QVERIFY(repo.saveProfile(prof1));
+
+        PersonProfile prof2;
+        prof2.personId = pid2;
+        prof2.reliability = "Низкая";
+        QVERIFY(repo.saveProfile(prof2));
+
+        auto map = repo.getReliabilityMap();
+        QCOMPARE(map.value(pid1), "Высокая");
+        QCOMPARE(map.value(pid2), "Низкая");
+    }
 };
 
 QObject* createTestPersonRepository() { return new TestPersonRepository(); }

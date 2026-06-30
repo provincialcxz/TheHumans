@@ -43,7 +43,7 @@ QVariant PersonListModel::data(const QModelIndex &index, int role) const
         return static_cast<int>(today.daysTo(nextBD));
     }
     case ReliabilityRole:
-        return QString();
+        return m_reliabilityByPersonId.value(p.id);
     default:
         return {};
     }
@@ -54,6 +54,13 @@ void PersonListModel::setPeople(const QVector<Person> &people)
     beginResetModel();
     m_people = people;
     endResetModel();
+}
+
+void PersonListModel::setReliabilityMap(const QMap<int, QString> &reliabilityByPersonId)
+{
+    m_reliabilityByPersonId = reliabilityByPersonId;
+    if (!m_people.isEmpty())
+        emit dataChanged(index(0), index(m_people.size() - 1), {ReliabilityRole});
 }
 
 Person PersonListModel::personAt(int row) const

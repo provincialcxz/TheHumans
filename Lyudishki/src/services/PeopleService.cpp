@@ -82,6 +82,11 @@ bool PeopleService::saveProfile(const PersonProfile &profile)
     return m_repo->saveProfile(profile);
 }
 
+QMap<int, QString> PeopleService::getReliabilityMap()
+{
+    return m_repo->getReliabilityMap();
+}
+
 QVector<SocialAccount> PeopleService::getSocialAccounts(int personId)
 {
     return m_repo->getSocialAccounts(personId);

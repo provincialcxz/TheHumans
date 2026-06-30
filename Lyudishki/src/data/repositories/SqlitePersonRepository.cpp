@@ -226,6 +226,17 @@ bool SqlitePersonRepository::saveProfile(const PersonProfile &profile)
     return true;
 }
 
+QMap<int, QString> SqlitePersonRepository::getReliabilityMap()
+{
+    QMap<int, QString> result;
+    QSqlQuery q(m_db);
+    if (!q.exec("SELECT person_id, reliability FROM person_profile"))
+        qWarning("SqlitePersonRepository::getReliabilityMap: %s", qPrintable(q.lastError().text()));
+    while (q.next())
+        result.insert(q.value(0).toInt(), q.value(1).toString());
+    return result;
+}
+
 // --- Social Accounts ---
 
 QVector<SocialAccount> SqlitePersonRepository::getSocialAccounts(int personId)

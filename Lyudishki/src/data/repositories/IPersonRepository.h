@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QVector>
+#include <QMap>
 #include "domain/Person.h"
 #include "domain/PersonProfile.h"
 #include "domain/SocialAccount.h"
@@ -24,6 +25,10 @@ public:
     // Profile (lazy)
     virtual PersonProfile loadProfile(int personId) = 0;
     virtual bool saveProfile(const PersonProfile &profile) = 0;
+
+    // Lightweight side-load for list sorting: avoids pulling the full
+    // (lazy-loaded) profile per person just to sort by reliability.
+    virtual QMap<int, QString> getReliabilityMap() = 0;
 
     // Social accounts
     virtual QVector<SocialAccount> getSocialAccounts(int personId) = 0;

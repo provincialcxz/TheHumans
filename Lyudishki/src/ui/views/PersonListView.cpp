@@ -55,6 +55,7 @@ void PersonListView::loadData()
 {
     auto people = m_peopleService->getAllPeople();
     m_model->setPeople(people);
+    m_model->setReliabilityMap(m_peopleService->getReliabilityMap());
     m_proxy->sort(0, m_sortAscending ? Qt::AscendingOrder : Qt::DescendingOrder);
 }
 
