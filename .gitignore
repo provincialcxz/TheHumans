@@ -168,4 +168,7 @@ compile_commands.json
 .history
 .ionide
 
+
+build-release/
+build/
 # End of https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,qt,qtcreator,c++
