@@ -97,6 +97,77 @@ private slots:
         QCOMPARE(all.size(), 2);
     }
 
+    void testSearchCoversProfileEmailsPhonesAndNotes()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        auto repo = std::make_shared<SqlitePersonRepository>(dbm.database());
+        SearchService svc(repo);
+
+        Person target;
+        target.groupId = 1;
+        target.firstName = "Игорь";
+        target.lastName = "Скрытый";
+        int targetId = repo->add(target);
+
+        Person decoy;
+        decoy.groupId = 1;
+        decoy.firstName = "Other";
+        decoy.lastName = "Person";
+        repo->add(decoy);
+
+        // None of these live on the Person row itself — they're exactly the
+        // data the old substring-on-getAll() search couldn't see at all.
+        PersonProfile prof;
+        prof.personId = targetId;
+        prof.careerTrack = "Работает программистом-зоологом в стартапе Жирафхак";
+        QVERIFY(repo->saveProfile(prof));
+
+        Email e;
+        e.personId = targetId;
+        e.address = "skrytyi@example.com";
+        repo->addEmail(e);
+
+        PhoneNumber ph;
+        ph.personId = targetId;
+        ph.number = "+79995554433";
+        ph.label = "запасной";
+        repo->addPhoneNumber(ph);
+
+        PersonNote note;
+        note.personId = targetId;
+        note.text = "Любит играть в петанк по выходным";
+        repo->addNote(note);
+
+        // Match by an obscure profile word.
+        auto byProfile = svc.search("жирафхак");
+        QCOMPARE(byProfile.size(), 1);
+        QCOMPARE(byProfile[0].id, targetId);
+
+        // Match by email local part.
+        auto byEmail = svc.search("skrytyi");
+        QCOMPARE(byEmail.size(), 1);
+        QCOMPARE(byEmail[0].id, targetId);
+
+        // Match by the secondary phone number.
+        auto byPhone = svc.searchPersonIds("79995554433");
+        QCOMPARE(byPhone.size(), 1);
+        QCOMPARE(byPhone[0], targetId);
+
+        // Match by a note.
+        auto byNote = svc.search("петанк");
+        QCOMPARE(byNote.size(), 1);
+        QCOMPARE(byNote[0].id, targetId);
+
+        // Removing the note should drop it from the index too.
+        auto notes = repo->getNotes(targetId);
+        QCOMPARE(notes.size(), 1);
+        QVERIFY(repo->removeNote(notes[0].id));
+        QCOMPARE(svc.search("петанк").size(), 0);
+    }
+
     void testFileCleanupOnRemoval()
     {
         DatabaseManager dbm(":memory:");

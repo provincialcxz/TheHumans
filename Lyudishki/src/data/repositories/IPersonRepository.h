@@ -30,6 +30,11 @@ public:
     // (lazy-loaded) profile per person just to sort by reliability.
     virtual QMap<int, QString> getReliabilityMap() = 0;
 
+    // Full-text search across name/note/phone plus the otherwise-lazy data
+    // (profile fields, emails, extra phones, notes) via the person_search
+    // FTS5 index — without loading any of that into memory per person.
+    virtual QVector<int> searchPersonIds(const QString &query) = 0;
+
     // Social accounts
     virtual QVector<SocialAccount> getSocialAccounts(int personId) = 0;
     virtual int addSocialAccount(const SocialAccount &account) = 0;

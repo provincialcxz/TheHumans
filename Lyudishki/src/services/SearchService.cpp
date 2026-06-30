@@ -11,14 +11,12 @@ QVector<Person> SearchService::search(const QString &query)
         return m_repo->getAll();
 
     QVector<Person> result;
-    const QString lower = query.toLower();
-    for (const auto &p : m_repo->getAll()) {
-        QString fullName = p.lastName + " " + p.firstName + " " + p.patronymic;
-        if (fullName.toLower().contains(lower) ||
-            p.note.toLower().contains(lower) ||
-            p.phone.contains(lower)) {
-            result.append(p);
-        }
-    }
+    for (int id : m_repo->searchPersonIds(query))
+        result.append(m_repo->getById(id));
     return result;
+}
+
+QVector<int> SearchService::searchPersonIds(const QString &query)
+{
+    return m_repo->searchPersonIds(query);
 }

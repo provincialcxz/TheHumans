@@ -1,6 +1,7 @@
 #include "SqlitePersonRepository.h"
 #include <QSqlQuery>
 #include <QSqlError>
+#include <QRegularExpression>
 
 SqlitePersonRepository::SqlitePersonRepository(QSqlDatabase &db)
     : m_db(db)
@@ -234,6 +235,41 @@ QMap<int, QString> SqlitePersonRepository::getReliabilityMap()
         qWarning("SqlitePersonRepository::getReliabilityMap: %s", qPrintable(q.lastError().text()));
     while (q.next())
         result.insert(q.value(0).toInt(), q.value(1).toString());
+    return result;
+}
+
+QVector<int> SqlitePersonRepository::searchPersonIds(const QString &query)
+{
+    QVector<int> result;
+    QString trimmed = query.trimmed();
+    if (trimmed.isEmpty())
+        return result;
+
+    // Build a safe FTS5 MATCH expression: each whitespace-separated token is
+    // quoted as a literal string (so stray FTS5 syntax characters like
+    // - " * : ( ) or the bareword operators AND/OR/NOT in the user's typed
+    // text can't be interpreted as query syntax) with a trailing '*' for
+    // prefix matching, ANDed together.
+    QStringList tokens = trimmed.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+    QStringList quotedTokens;
+    for (const QString &t : tokens) {
+        QString escaped = t;
+        escaped.replace("\"", "\"\"");
+        quotedTokens << QString("\"%1\"*").arg(escaped);
+    }
+    if (quotedTokens.isEmpty())
+        return result;
+    QString matchExpr = quotedTokens.join(" AND ");
+
+    QSqlQuery q(m_db);
+    q.prepare("SELECT person_id FROM person_search WHERE person_search MATCH ? ORDER BY rank");
+    q.addBindValue(matchExpr);
+    if (!q.exec()) {
+        qWarning("SqlitePersonRepository::searchPersonIds: %s", qPrintable(q.lastError().text()));
+        return result;
+    }
+    while (q.next())
+        result.append(q.value(0).toInt());
     return result;
 }
 
