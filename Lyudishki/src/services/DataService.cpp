@@ -288,6 +288,21 @@ bool DataService::restoreBackup(const QString &backupFile, const QString &dbPath
 {
     if (!QFile::exists(backupFile))
         return false;
+
+    // Copy to a staging file first and only touch the live DB once the copy
+    // is verified — never delete dbPath before we know the replacement is
+    // actually on disk (disk full / permissions / corrupt backup must not
+    // leave the user with no database at all).
+    QString tmpPath = dbPath + ".restoring";
+    QFile::remove(tmpPath);
+    if (!QFile::copy(backupFile, tmpPath))
+        return false;
+
     QFile::remove(dbPath);
-    return QFile::copy(backupFile, dbPath);
+    if (!QFile::rename(tmpPath, dbPath)) {
+        // Extremely unlikely after a successful copy, but if rename fails
+        // leave the staged copy in place so the user's data isn't stranded.
+        return false;
+    }
+    return true;
 }
