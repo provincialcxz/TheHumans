@@ -18,7 +18,8 @@ QString CalendarExportService::escapeIcs(const QString &text)
     return escaped;
 }
 
-bool CalendarExportService::exportToIcs(const QString &filePath, int groupId, bool includeEvents)
+bool CalendarExportService::exportToIcs(const QString &filePath, int groupId, bool includeEvents,
+                                         int birthdayRemindDays)
 {
     QFile file(filePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -40,11 +41,13 @@ bool CalendarExportService::exportToIcs(const QString &filePath, int groupId, bo
         out << "DTSTART;VALUE=DATE:" << p.birthDate.toString("yyyyMMdd") << "\r\n";
         out << "SUMMARY:" << escapeIcs("ДР: " + p.lastName + " " + p.firstName) << "\r\n";
         out << "RRULE:FREQ=YEARLY\r\n";
-        out << "BEGIN:VALARM\r\n";
-        out << "TRIGGER:-P3D\r\n";
-        out << "ACTION:DISPLAY\r\n";
-        out << "DESCRIPTION:" << escapeIcs("День рождения: " + p.lastName + " " + p.firstName) << "\r\n";
-        out << "END:VALARM\r\n";
+        if (birthdayRemindDays > 0) {
+            out << "BEGIN:VALARM\r\n";
+            out << "TRIGGER:-P" << birthdayRemindDays << "D\r\n";
+            out << "ACTION:DISPLAY\r\n";
+            out << "DESCRIPTION:" << escapeIcs("День рождения: " + p.lastName + " " + p.firstName) << "\r\n";
+            out << "END:VALARM\r\n";
+        }
         out << "END:VEVENT\r\n";
     }
 

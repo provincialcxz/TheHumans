@@ -8,7 +8,8 @@ class CalendarExportService {
 public:
     explicit CalendarExportService(std::shared_ptr<IPersonRepository> repo);
 
-    bool exportToIcs(const QString &filePath, int groupId = -1, bool includeEvents = true);
+    bool exportToIcs(const QString &filePath, int groupId = -1, bool includeEvents = true,
+                      int birthdayRemindDays = 3);
 
 private:
     std::shared_ptr<IPersonRepository> m_repo;

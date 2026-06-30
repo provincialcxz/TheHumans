@@ -242,8 +242,9 @@ void MainWindow::onExportCalendar()
 
     int gid = groupCombo->currentData().toInt();
     bool inclEvents = includeEvents->isChecked();
+    int remindDays = m_settings.value("defaultRemindDays", 3).toInt();
 
-    if (m_ctx.calendarExportService()->exportToIcs(path, gid, inclEvents)) {
+    if (m_ctx.calendarExportService()->exportToIcs(path, gid, inclEvents, remindDays)) {
         QMessageBox::information(this, "Экспорт", "Файл успешно сохранён:\n" + path);
     } else {
         QMessageBox::warning(this, "Ошибка", "Не удалось сохранить файл.");

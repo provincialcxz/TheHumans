@@ -9,6 +9,7 @@
 #include "services/PeopleService.h"
 #include "services/GroupService.h"
 #include "services/SearchService.h"
+#include "services/CalendarExportService.h"
 
 class TestServices : public QObject {
     Q_OBJECT
@@ -146,6 +147,33 @@ private slots:
 
         // The original source file must never be touched.
         QVERIFY(QFile::exists(sourcePath));
+    }
+
+    void testIcsExportUsesCustomBirthdayRemindDays()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        auto repo = std::make_shared<SqlitePersonRepository>(dbm.database());
+        CalendarExportService svc(repo);
+
+        Person p;
+        p.groupId = 1;
+        p.firstName = "Дима";
+        p.lastName = "Тестов";
+        p.birthDate = QDate(1990, 5, 1);
+        repo->add(p);
+
+        QTemporaryDir outDir;
+        QString icsPath = outDir.path() + "/out.ics";
+        QVERIFY(svc.exportToIcs(icsPath, -1, true, 7));
+
+        QFile f(icsPath);
+        QVERIFY(f.open(QIODevice::ReadOnly | QIODevice::Text));
+        QString contents = f.readAll();
+        QVERIFY(contents.contains("TRIGGER:-P7D"));
+        QVERIFY(!contents.contains("TRIGGER:-P3D"));
     }
 };
 
