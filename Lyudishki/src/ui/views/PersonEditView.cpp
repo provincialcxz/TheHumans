@@ -27,7 +27,11 @@ void PersonEditView::populateGroupCombo(int selectGroupId)
 {
     ui->editGroupCombo->clear();
     auto groups = m_groupService->getAllGroups();
-    int selectIdx = 0;
+    // No silent fallback to "whatever sorts first" — if selectGroupId doesn't
+    // name a real group (e.g. adding from the virtual "Все" view), leave the
+    // combo unselected and require the user to consciously pick one in
+    // onSave(), rather than quietly filing them into an unrelated group.
+    int selectIdx = -1;
     for (int i = 0; i < groups.size(); ++i) {
         ui->editGroupCombo->addItem(groups[i].name, groups[i].id);
         if (groups[i].id == selectGroupId)
@@ -158,6 +162,11 @@ void PersonEditView::onSave()
     if (ui->editLastName->text().trimmed().isEmpty() &&
         ui->editFirstName->text().trimmed().isEmpty()) {
         QMessageBox::warning(this, "Ошибка", "Введите хотя бы имя или фамилию.");
+        return;
+    }
+
+    if (ui->editGroupCombo->currentIndex() < 0) {
+        QMessageBox::warning(this, "Ошибка", "Выберите группу.");
         return;
     }
 
