@@ -36,7 +36,8 @@ bool PersonSortFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &s
     if (!m_searchText.isEmpty()) {
         QString name = idx.data(PersonListModel::FullNameRole).toString().toLower();
         QString note = idx.data(PersonListModel::NoteRole).toString().toLower();
-        if (!name.contains(m_searchText) && !note.contains(m_searchText))
+        QString phone = idx.data(PersonListModel::PhoneRole).toString().toLower();
+        if (!name.contains(m_searchText) && !note.contains(m_searchText) && !phone.contains(m_searchText))
             return false;
     }
 
