@@ -27,7 +27,7 @@ MainWindow::MainWindow(AppContext &ctx, QWidget *parent)
     setAttribute(Qt::WA_TranslucentBackground, false);
 
     m_emptyView = new EmptyStateView(this);
-    m_listView = new PersonListView(ctx.peopleService(), this);
+    m_listView = new PersonListView(ctx.peopleService(), ctx.searchService(), this);
     m_detailView = new PersonDetailView(ctx.peopleService(), this);
     m_editView = new PersonEditView(ctx.peopleService(), ctx.groupService(), this);
 

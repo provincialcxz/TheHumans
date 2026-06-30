@@ -24,6 +24,12 @@ void PersonSortFilterProxy::setSortField(SortField field)
     invalidate();
 }
 
+void PersonSortFilterProxy::setDeepMatchIds(const QSet<int> &ids)
+{
+    m_deepMatchIds = ids;
+    invalidateFilter();
+}
+
 bool PersonSortFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
     auto idx = sourceModel()->index(sourceRow, 0, sourceParent);
@@ -37,8 +43,12 @@ bool PersonSortFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &s
         QString name = idx.data(PersonListModel::FullNameRole).toString().toLower();
         QString note = idx.data(PersonListModel::NoteRole).toString().toLower();
         QString phone = idx.data(PersonListModel::PhoneRole).toString().toLower();
-        if (!name.contains(m_searchText) && !note.contains(m_searchText) && !phone.contains(m_searchText))
-            return false;
+        bool instantMatch = name.contains(m_searchText) || note.contains(m_searchText) || phone.contains(m_searchText);
+        if (!instantMatch) {
+            int pid = idx.data(PersonListModel::IdRole).toInt();
+            if (!m_deepMatchIds.contains(pid))
+                return false;
+        }
     }
 
     return true;

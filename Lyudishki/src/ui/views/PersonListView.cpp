@@ -1,10 +1,13 @@
 #include "PersonListView.h"
 #include "ui_person_list.h"
 
-PersonListView::PersonListView(std::shared_ptr<PeopleService> peopleService, QWidget *parent)
+PersonListView::PersonListView(std::shared_ptr<PeopleService> peopleService,
+                               std::shared_ptr<SearchService> searchService,
+                               QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::PersonListForm)
     , m_peopleService(std::move(peopleService))
+    , m_searchService(std::move(searchService))
 {
     ui->setupUi(this);
     setObjectName("personListPage");
@@ -23,6 +26,15 @@ PersonListView::PersonListView(std::shared_ptr<PeopleService> peopleService, QWi
     ui->sortCombo->addItem("Ближайший ДР");
     ui->sortCombo->addItem("Дата добавления");
     ui->sortCombo->addItem("Надёжность");
+
+    // The instant name/note/phone filter (PersonSortFilterProxy) runs on
+    // every keystroke with zero latency. This timer additionally triggers a
+    // "deep" FTS5 search (profile/emails/extra phones/notes) shortly after
+    // typing pauses, so broader matches pop in without making the common
+    // case (searching by name) wait on a DB round-trip.
+    m_deepSearchTimer = new QTimer(this);
+    m_deepSearchTimer->setSingleShot(true);
+    connect(m_deepSearchTimer, &QTimer::timeout, this, &PersonListView::onDeepSearchTimeout);
 
     connect(ui->personListView, &QListView::clicked, this, &PersonListView::onItemClicked);
     connect(ui->searchField, &QLineEdit::textChanged, this, &PersonListView::onSearchTextChanged);
@@ -69,7 +81,19 @@ void PersonListView::onItemClicked(const QModelIndex &index)
 
 void PersonListView::onSearchTextChanged(const QString &text)
 {
-    m_proxy->setSearchText(text);
+    m_proxy->setSearchText(text); // instant local filter, unchanged
+    m_deepSearchTimer->start(250);
+}
+
+void PersonListView::onDeepSearchTimeout()
+{
+    QString text = ui->searchField->text();
+    if (text.trimmed().isEmpty()) {
+        m_proxy->setDeepMatchIds({});
+        return;
+    }
+    auto ids = m_searchService->searchPersonIds(text);
+    m_proxy->setDeepMatchIds(QSet<int>(ids.begin(), ids.end()));
 }
 
 void PersonListView::onSortChanged(int index)
