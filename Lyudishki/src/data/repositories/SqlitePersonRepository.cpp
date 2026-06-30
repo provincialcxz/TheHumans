@@ -31,7 +31,8 @@ QVector<Person> SqlitePersonRepository::getAll()
 {
     QVector<Person> result;
     QSqlQuery q(m_db);
-    q.exec("SELECT * FROM person ORDER BY last_name, first_name");
+    if (!q.exec("SELECT * FROM person ORDER BY last_name, first_name"))
+        qWarning("SqlitePersonRepository::getAll: %s", qPrintable(q.lastError().text()));
     while (q.next())
         result.append(personFromQuery(q));
     return result;
@@ -43,7 +44,8 @@ QVector<Person> SqlitePersonRepository::getByGroupId(int groupId)
     QSqlQuery q(m_db);
     q.prepare("SELECT * FROM person WHERE group_id = ? ORDER BY last_name, first_name");
     q.addBindValue(groupId);
-    q.exec();
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::getByGroupId: %s", qPrintable(q.lastError().text()));
     while (q.next())
         result.append(personFromQuery(q));
     return result;
@@ -54,7 +56,8 @@ Person SqlitePersonRepository::getById(int id)
     QSqlQuery q(m_db);
     q.prepare("SELECT * FROM person WHERE id = ?");
     q.addBindValue(id);
-    q.exec();
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::getById: %s", qPrintable(q.lastError().text()));
     if (q.next())
         return personFromQuery(q);
     return {};
@@ -87,7 +90,8 @@ int SqlitePersonRepository::add(const Person &person)
     QSqlQuery pq(m_db);
     pq.prepare("INSERT INTO person_profile (person_id) VALUES (?)");
     pq.addBindValue(personId);
-    pq.exec();
+    if (!pq.exec())
+        qWarning("SqlitePersonRepository::add (profile row): %s", qPrintable(pq.lastError().text()));
     return personId;
 }
 
@@ -138,7 +142,8 @@ PersonProfile SqlitePersonRepository::loadProfile(int personId)
     QSqlQuery q(m_db);
     q.prepare("SELECT * FROM person_profile WHERE person_id = ?");
     q.addBindValue(personId);
-    q.exec();
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::loadProfile: %s", qPrintable(q.lastError().text()));
     if (q.next()) {
         p.character = q.value("character").toString();
         p.interests = q.value("interests").toString();
@@ -229,7 +234,8 @@ QVector<SocialAccount> SqlitePersonRepository::getSocialAccounts(int personId)
     QSqlQuery q(m_db);
     q.prepare("SELECT id, person_id, platform, handle_or_url FROM social_accounts WHERE person_id = ?");
     q.addBindValue(personId);
-    q.exec();
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::getSocialAccounts: %s", qPrintable(q.lastError().text()));
     while (q.next()) {
         SocialAccount s;
         s.id = q.value(0).toInt();
@@ -260,7 +266,11 @@ bool SqlitePersonRepository::removeSocialAccount(int id)
     QSqlQuery q(m_db);
     q.prepare("DELETE FROM social_accounts WHERE id = ?");
     q.addBindValue(id);
-    return q.exec();
+    if (!q.exec()) {
+        qWarning("SqlitePersonRepository::removeSocialAccount: %s", qPrintable(q.lastError().text()));
+        return false;
+    }
+    return true;
 }
 
 // --- Emails ---
@@ -271,7 +281,8 @@ QVector<Email> SqlitePersonRepository::getEmails(int personId)
     QSqlQuery q(m_db);
     q.prepare("SELECT id, person_id, address, label FROM emails WHERE person_id = ?");
     q.addBindValue(personId);
-    q.exec();
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::getEmails: %s", qPrintable(q.lastError().text()));
     while (q.next()) {
         Email e;
         e.id = q.value(0).toInt();
@@ -302,7 +313,11 @@ bool SqlitePersonRepository::removeEmail(int id)
     QSqlQuery q(m_db);
     q.prepare("DELETE FROM emails WHERE id = ?");
     q.addBindValue(id);
-    return q.exec();
+    if (!q.exec()) {
+        qWarning("SqlitePersonRepository::removeEmail: %s", qPrintable(q.lastError().text()));
+        return false;
+    }
+    return true;
 }
 
 // --- Phone Numbers ---
@@ -313,7 +328,8 @@ QVector<PhoneNumber> SqlitePersonRepository::getPhoneNumbers(int personId)
     QSqlQuery q(m_db);
     q.prepare("SELECT id, person_id, number, label FROM phone_numbers WHERE person_id = ?");
     q.addBindValue(personId);
-    q.exec();
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::getPhoneNumbers: %s", qPrintable(q.lastError().text()));
     while (q.next()) {
         PhoneNumber p;
         p.id = q.value(0).toInt();
@@ -344,7 +360,11 @@ bool SqlitePersonRepository::removePhoneNumber(int id)
     QSqlQuery q(m_db);
     q.prepare("DELETE FROM phone_numbers WHERE id = ?");
     q.addBindValue(id);
-    return q.exec();
+    if (!q.exec()) {
+        qWarning("SqlitePersonRepository::removePhoneNumber: %s", qPrintable(q.lastError().text()));
+        return false;
+    }
+    return true;
 }
 
 // --- Notes ---
@@ -356,7 +376,8 @@ QVector<PersonNote> SqlitePersonRepository::getNotes(int personId)
     q.prepare("SELECT id, person_id, text, created_at FROM person_notes "
               "WHERE person_id = ? ORDER BY created_at DESC");
     q.addBindValue(personId);
-    q.exec();
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::getNotes: %s", qPrintable(q.lastError().text()));
     while (q.next()) {
         PersonNote n;
         n.id = q.value(0).toInt();
@@ -386,7 +407,11 @@ bool SqlitePersonRepository::removeNote(int id)
     QSqlQuery q(m_db);
     q.prepare("DELETE FROM person_notes WHERE id = ?");
     q.addBindValue(id);
-    return q.exec();
+    if (!q.exec()) {
+        qWarning("SqlitePersonRepository::removeNote: %s", qPrintable(q.lastError().text()));
+        return false;
+    }
+    return true;
 }
 
 // --- File Attachments ---
@@ -398,7 +423,8 @@ QVector<PersonFile> SqlitePersonRepository::getFiles(int personId)
     q.prepare("SELECT id, person_id, file_name, file_path, added_at FROM person_files "
               "WHERE person_id = ? ORDER BY added_at DESC");
     q.addBindValue(personId);
-    q.exec();
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::getFiles: %s", qPrintable(q.lastError().text()));
     while (q.next()) {
         PersonFile f;
         f.id = q.value(0).toInt();
@@ -430,7 +456,11 @@ bool SqlitePersonRepository::removeFile(int id)
     QSqlQuery q(m_db);
     q.prepare("DELETE FROM person_files WHERE id = ?");
     q.addBindValue(id);
-    return q.exec();
+    if (!q.exec()) {
+        qWarning("SqlitePersonRepository::removeFile: %s", qPrintable(q.lastError().text()));
+        return false;
+    }
+    return true;
 }
 
 // --- Events ---
@@ -442,7 +472,8 @@ QVector<PersonEvent> SqlitePersonRepository::getEvents(int personId)
     q.prepare("SELECT id, person_id, title, date, recurs_yearly, remind_days_before "
               "FROM person_events WHERE person_id = ?");
     q.addBindValue(personId);
-    q.exec();
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::getEvents: %s", qPrintable(q.lastError().text()));
     while (q.next()) {
         PersonEvent e;
         e.id = q.value(0).toInt();
@@ -460,7 +491,8 @@ QVector<PersonEvent> SqlitePersonRepository::getAllEvents()
 {
     QVector<PersonEvent> result;
     QSqlQuery q(m_db);
-    q.exec("SELECT id, person_id, title, date, recurs_yearly, remind_days_before FROM person_events");
+    if (!q.exec("SELECT id, person_id, title, date, recurs_yearly, remind_days_before FROM person_events"))
+        qWarning("SqlitePersonRepository::getAllEvents: %s", qPrintable(q.lastError().text()));
     while (q.next()) {
         PersonEvent e;
         e.id = q.value(0).toInt();
@@ -512,5 +544,9 @@ bool SqlitePersonRepository::removeEvent(int id)
     QSqlQuery q(m_db);
     q.prepare("DELETE FROM person_events WHERE id = ?");
     q.addBindValue(id);
-    return q.exec();
+    if (!q.exec()) {
+        qWarning("SqlitePersonRepository::removeEvent: %s", qPrintable(q.lastError().text()));
+        return false;
+    }
+    return true;
 }

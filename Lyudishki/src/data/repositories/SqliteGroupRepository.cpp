@@ -11,7 +11,8 @@ QVector<Group> SqliteGroupRepository::getAll()
 {
     QVector<Group> result;
     QSqlQuery q(m_db);
-    q.exec("SELECT id, name, sort_order FROM groups ORDER BY sort_order, id");
+    if (!q.exec("SELECT id, name, sort_order FROM groups ORDER BY sort_order, id"))
+        qWarning("SqliteGroupRepository::getAll: %s", qPrintable(q.lastError().text()));
     while (q.next()) {
         Group g;
         g.id = q.value(0).toInt();
@@ -27,7 +28,8 @@ Group SqliteGroupRepository::getById(int id)
     QSqlQuery q(m_db);
     q.prepare("SELECT id, name, sort_order FROM groups WHERE id = ?");
     q.addBindValue(id);
-    q.exec();
+    if (!q.exec())
+        qWarning("SqliteGroupRepository::getById: %s", qPrintable(q.lastError().text()));
     Group g;
     if (q.next()) {
         g.id = q.value(0).toInt();
