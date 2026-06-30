@@ -35,6 +35,7 @@ public:
     bool removeNote(int id) override;
 
     QVector<PersonFile> getFiles(int personId) override;
+    PersonFile getFileById(int id) override;
     int addFile(const PersonFile &file) override;
     bool removeFile(int id) override;
 

@@ -1,4 +1,7 @@
 #include <QtTest>
+#include <QTemporaryDir>
+#include <QFile>
+#include <QDir>
 #include "data/db/DatabaseManager.h"
 #include "data/db/MigrationManager.h"
 #include "data/repositories/SqlitePersonRepository.h"
@@ -90,6 +93,59 @@ private slots:
 
         auto all = svc.search("");
         QCOMPARE(all.size(), 2);
+    }
+
+    void testFileCleanupOnRemoval()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        QTemporaryDir attachDir;
+        QVERIFY(attachDir.isValid());
+
+        auto repo = std::make_shared<SqlitePersonRepository>(dbm.database());
+        PeopleService svc(repo, attachDir.path());
+
+        Person p;
+        p.groupId = 1;
+        p.firstName = "File";
+        p.lastName = "Cleanup";
+        int pid = svc.addPerson(p);
+        QVERIFY(pid > 0);
+
+        // Attach a file: source lives outside the managed dir, attachFile copies it in.
+        QTemporaryDir sourceDir;
+        QString sourcePath = sourceDir.path() + "/doc.txt";
+        QFile src(sourcePath);
+        QVERIFY(src.open(QIODevice::WriteOnly));
+        src.write("hello");
+        src.close();
+
+        int fileId = svc.attachFile(pid, sourcePath);
+        QVERIFY(fileId > 0);
+        auto files = svc.getFiles(pid);
+        QCOMPARE(files.size(), 1);
+        QString managedPath = files[0].filePath;
+        QVERIFY(QFile::exists(managedPath));
+        QVERIFY(managedPath.startsWith(attachDir.path()));
+
+        // Removing the file should delete the managed copy from disk.
+        QVERIFY(svc.removeFile(fileId));
+        QVERIFY(!QFile::exists(managedPath));
+
+        // Attach another file, then remove the whole person — its managed
+        // storage directory should be gone too.
+        int fileId2 = svc.attachFile(pid, sourcePath);
+        QVERIFY(fileId2 > 0);
+        QString personDir = attachDir.path() + "/person_" + QString::number(pid);
+        QVERIFY(QDir(personDir).exists());
+
+        QVERIFY(svc.removePerson(pid));
+        QVERIFY(!QDir(personDir).exists());
+
+        // The original source file must never be touched.
+        QVERIFY(QFile::exists(sourcePath));
     }
 };
 

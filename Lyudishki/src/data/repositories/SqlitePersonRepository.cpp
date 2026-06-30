@@ -448,6 +448,24 @@ QVector<PersonFile> SqlitePersonRepository::getFiles(int personId)
     return result;
 }
 
+PersonFile SqlitePersonRepository::getFileById(int id)
+{
+    PersonFile f;
+    QSqlQuery q(m_db);
+    q.prepare("SELECT id, person_id, file_name, file_path, added_at FROM person_files WHERE id = ?");
+    q.addBindValue(id);
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::getFileById: %s", qPrintable(q.lastError().text()));
+    if (q.next()) {
+        f.id = q.value(0).toInt();
+        f.personId = q.value(1).toInt();
+        f.fileName = q.value(2).toString();
+        f.filePath = q.value(3).toString();
+        f.addedAt = QDateTime::fromString(q.value(4).toString(), Qt::ISODate);
+    }
+    return f;
+}
+
 int SqlitePersonRepository::addFile(const PersonFile &file)
 {
     QSqlQuery q(m_db);

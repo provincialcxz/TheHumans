@@ -52,6 +52,7 @@ public:
 
     // File attachments
     virtual QVector<PersonFile> getFiles(int personId) = 0;
+    virtual PersonFile getFileById(int id) = 0;
     virtual int addFile(const PersonFile &file) = 0;
     virtual bool removeFile(int id) = 0;
 

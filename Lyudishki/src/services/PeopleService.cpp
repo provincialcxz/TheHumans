@@ -69,6 +69,16 @@ QString PeopleService::importPhoto(int personId, const QString &sourceFilePath)
 
 bool PeopleService::removePerson(int id)
 {
+    // Drop the managed on-disk copies (attached files + photo) before the
+    // DB row disappears — otherwise a "deleted" person's photos/documents
+    // stay on disk forever with no UI to find or clear them. Only ever
+    // touches paths under our own managed storage, never the user's
+    // original files (those are only referenced directly when no
+    // attachments dir is configured at all).
+    if (!m_attachmentsDir.isEmpty()) {
+        QDir(m_attachmentsDir + "/person_" + QString::number(id)).removeRecursively();
+        QDir(m_attachmentsDir + "/photos/person_" + QString::number(id)).removeRecursively();
+    }
     return m_repo->remove(id);
 }
 
@@ -181,6 +191,9 @@ int PeopleService::attachFile(int personId, const QString &sourceFilePath)
 
 bool PeopleService::removeFile(int id)
 {
+    PersonFile f = m_repo->getFileById(id);
+    if (!f.filePath.isEmpty() && !m_attachmentsDir.isEmpty() && f.filePath.startsWith(m_attachmentsDir))
+        QFile::remove(f.filePath);
     return m_repo->removeFile(id);
 }
 
