@@ -137,7 +137,7 @@ void PersonDetailView::buildPhonesSection(int personId)
             QString text = ph.number;
             if (!ph.label.isEmpty()) text += " (" + ph.label + ")";
             auto *lbl = new QLabel(QString("<a href=\"tel:%1\" style=\"color:#00ff41; text-decoration:none;\">%2</a>")
-                                    .arg(ph.number, text), row);
+                                    .arg(ph.number.toHtmlEscaped(), text.toHtmlEscaped()), row);
             lbl->setTextFormat(Qt::RichText);
             lbl->setOpenExternalLinks(true);
             lbl->setStyleSheet("font-size: 13px;");
@@ -226,7 +226,7 @@ void PersonDetailView::buildSocialSection(int personId)
             QLabel *textLbl;
             if (!url.isEmpty()) {
                 textLbl = new QLabel(QString("<a href=\"%1\" style=\"color:#00ff41; text-decoration:none;\">%2: %3</a>")
-                                      .arg(url, s.platform, s.handleOrUrl), row);
+                                      .arg(url.toHtmlEscaped(), s.platform.toHtmlEscaped(), s.handleOrUrl.toHtmlEscaped()), row);
                 textLbl->setTextFormat(Qt::RichText);
                 textLbl->setOpenExternalLinks(true);
             } else {
@@ -314,7 +314,7 @@ void PersonDetailView::buildEmailSection(int personId)
             QString text = e.address;
             if (!e.label.isEmpty()) text += " (" + e.label + ")";
             auto *lbl = new QLabel(QString("<a href=\"mailto:%1\" style=\"color:#00ff41; text-decoration:none;\">%2</a>")
-                                    .arg(e.address, text), row);
+                                    .arg(e.address.toHtmlEscaped(), text.toHtmlEscaped()), row);
             lbl->setTextFormat(Qt::RichText);
             lbl->setOpenExternalLinks(true);
             lbl->setStyleSheet("font-size: 13px;");
@@ -413,7 +413,7 @@ void PersonDetailView::buildFilesSection(int personId)
 
             QString urlStr = QUrl::fromLocalFile(f.filePath).toString();
             auto *lbl = new QLabel(QString("<a href=\"%1\" style=\"color:#00ff41; text-decoration:none;\">%2</a>")
-                                    .arg(urlStr, f.fileName), row);
+                                    .arg(urlStr.toHtmlEscaped(), f.fileName.toHtmlEscaped()), row);
             lbl->setTextFormat(Qt::RichText);
             lbl->setOpenExternalLinks(true);
             lbl->setStyleSheet("font-size: 13px;");
