@@ -434,10 +434,13 @@ void MainWindow::onImportPeople()
                                                  "JSON (*.json)");
     if (path.isEmpty()) return;
 
-    int count = m_ctx.dataService()->importPeopleJson(path);
+    int skipped = 0;
+    int count = m_ctx.dataService()->importPeopleJson(path, &skipped);
     if (count >= 0) {
-        QMessageBox::information(this, "Импорт",
-                                  "Импортировано: " + QString::number(count) + " чел.");
+        QString msg = "Импортировано: " + QString::number(count) + " чел.";
+        if (skipped > 0)
+            msg += "\nПропущено (уже есть в базе): " + QString::number(skipped) + " чел.";
+        QMessageBox::information(this, "Импорт", msg);
         populateGroups();
         m_listView->refresh();
     } else {

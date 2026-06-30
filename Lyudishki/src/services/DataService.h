@@ -11,7 +11,14 @@ public:
                 std::shared_ptr<IGroupRepository> groupRepo);
 
     bool exportPeopleJson(const QString &filePath);
-    int importPeopleJson(const QString &filePath);
+
+    // Imports people from a JSON export. Entries whose (lastName, firstName,
+    // birthDate) exactly match an already-existing person are skipped rather
+    // than added again — re-importing the same export file is a common
+    // "restore/merge from another device" scenario and shouldn't silently
+    // duplicate every contact. Returns the number actually added;
+    // skippedCount, if provided, receives the number of exact-match skips.
+    int importPeopleJson(const QString &filePath, int *skippedCount = nullptr);
 
     static bool createBackup(const QString &dbPath, const QString &backupDir);
     static bool restoreBackup(const QString &backupFile, const QString &dbPath);

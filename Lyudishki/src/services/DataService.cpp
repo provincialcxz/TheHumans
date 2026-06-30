@@ -5,6 +5,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QDateTime>
+#include <QSet>
 
 DataService::DataService(std::shared_ptr<IPersonRepository> personRepo,
                          std::shared_ptr<IGroupRepository> groupRepo)
@@ -135,8 +136,10 @@ bool DataService::exportPeopleJson(const QString &filePath)
     return true;
 }
 
-int DataService::importPeopleJson(const QString &filePath)
+int DataService::importPeopleJson(const QString &filePath, int *skippedCount)
 {
+    if (skippedCount) *skippedCount = 0;
+
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly))
         return -1;
@@ -151,9 +154,24 @@ int DataService::importPeopleJson(const QString &filePath)
     for (const auto &g : groups)
         groupByName[g.name] = g.id;
 
+    // Identity key for dedup: re-importing the same export file is a normal
+    // "restore on another device" flow and shouldn't multiply every contact.
+    QSet<QString> existingIdentities;
+    for (const auto &existing : m_personRepo->getAll()) {
+        existingIdentities.insert(existing.lastName + "\x1f" + existing.firstName + "\x1f" +
+                                   existing.birthDate.toString(Qt::ISODate));
+    }
+
     int imported = 0;
     for (const auto &val : doc.array()) {
         QJsonObject obj = val.toObject();
+
+        QString identity = obj["lastName"].toString() + "\x1f" + obj["firstName"].toString() +
+                            "\x1f" + obj["birthDate"].toString();
+        if (existingIdentities.contains(identity)) {
+            if (skippedCount) (*skippedCount)++;
+            continue;
+        }
 
         QString groupName = obj["group"].toString();
         int groupId = groupByName.value(groupName, 0);
@@ -271,6 +289,7 @@ int DataService::importPeopleJson(const QString &filePath)
             m_personRepo->saveProfile(prof);
         }
 
+        existingIdentities.insert(identity); // guard against dupes within this same file
         imported++;
     }
     return imported;

@@ -10,6 +10,7 @@
 #include "services/GroupService.h"
 #include "services/SearchService.h"
 #include "services/CalendarExportService.h"
+#include "services/DataService.h"
 
 class TestServices : public QObject {
     Q_OBJECT
@@ -174,6 +175,47 @@ private slots:
         QString contents = f.readAll();
         QVERIFY(contents.contains("TRIGGER:-P7D"));
         QVERIFY(!contents.contains("TRIGGER:-P3D"));
+    }
+
+    void testImportSkipsExactDuplicates()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        auto personRepo = std::make_shared<SqlitePersonRepository>(dbm.database());
+        auto groupRepo = std::make_shared<SqliteGroupRepository>(dbm.database());
+        DataService dataSvc(personRepo, groupRepo);
+
+        Person p;
+        p.groupId = 1;
+        p.firstName = "Олег";
+        p.lastName = "Дубликатов";
+        p.birthDate = QDate(1985, 3, 10);
+        personRepo->add(p);
+
+        QTemporaryDir dir;
+        QString jsonPath = dir.path() + "/export.json";
+        QVERIFY(dataSvc.exportPeopleJson(jsonPath));
+
+        int skipped = 0;
+        int imported = dataSvc.importPeopleJson(jsonPath, &skipped);
+        QCOMPARE(imported, 0);
+        QCOMPARE(skipped, 1);
+        QCOMPARE(personRepo->getAll().size(), 1); // no duplicate created
+
+        // A genuinely new person in the same file should still import.
+        Person p2;
+        p2.groupId = 1;
+        p2.firstName = "Новый";
+        p2.lastName = "Человек";
+        personRepo->add(p2);
+        QVERIFY(dataSvc.exportPeopleJson(jsonPath)); // re-export now includes both
+
+        skipped = 0;
+        imported = dataSvc.importPeopleJson(jsonPath, &skipped);
+        QCOMPARE(imported, 0); // both already exist now
+        QCOMPARE(skipped, 2);
     }
 };
 
