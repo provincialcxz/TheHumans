@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>styles/mrrobot.qss</file>
+        <file>fonts/JetBrainsMono-Regular.ttf</file>
+        <file>fonts/JetBrainsMono-Bold.ttf</file>
+        <file>icons/tray_icon.png</file>
+        <file>icons/placeholder.svg</file>
+        <file>icons/back_arrow.svg</file>
+        <file>icons/app_icon.svg</file>
+        <file>icons/app_icon.png</file>
+    </qresource>
+</RCC>

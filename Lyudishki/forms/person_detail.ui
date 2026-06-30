@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PersonDetailForm</class>
+ <widget class="QWidget" name="PersonDetailForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>700</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="leftMargin"><number>12</number></property>
+   <property name="topMargin"><number>8</number></property>
+   <property name="rightMargin"><number>12</number></property>
+   <property name="bottomMargin"><number>8</number></property>
+   <!-- Back button row -->
+   <item>
+    <widget class="QWidget" name="navBar">
+     <layout class="QHBoxLayout" name="navLayout">
+      <property name="leftMargin"><number>0</number></property>
+      <property name="topMargin"><number>0</number></property>
+      <property name="rightMargin"><number>0</number></property>
+      <property name="bottomMargin"><number>0</number></property>
+      <item>
+       <widget class="QPushButton" name="backButton">
+        <property name="text">
+         <string>← назад</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="navSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="editButton">
+        <property name="text">
+         <string>edit</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="deleteButton">
+        <property name="text">
+         <string>rm</string>
+        </property>
+        <property name="objectName">
+         <string>deleteBtn</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <!-- Top: photo + basic info -->
+   <item>
+    <widget class="QWidget" name="topSection">
+     <layout class="QHBoxLayout" name="topLayout">
+      <property name="spacing"><number>56</number></property>
+      <item>
+       <widget class="QLabel" name="detailPhoto">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>150</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>150</height>
+         </size>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="text">
+         <string>no photo</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="basicInfoWidget">
+        <layout class="QFormLayout" name="basicInfoLayout">
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="detailName">
+           <property name="text">
+            <string>Фамилия Имя Отчество</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="lblBirthDate">
+           <property name="text"><string>Дата рождения:</string></property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="valBirthDate">
+           <property name="text"><string>—</string></property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="lblPhone">
+           <property name="text"><string>Телефон:</string></property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLabel" name="valPhone">
+           <property name="text"><string>—</string></property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="lblContact">
+           <property name="text"><string>Связь:</string></property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLabel" name="valContact">
+           <property name="text"><string>—</string></property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="lblAddress">
+           <property name="text"><string>Адрес:</string></property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLabel" name="valAddress">
+           <property name="text"><string>—</string></property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <!-- Bottom: left column (scrollable, dynamic) + profile scroll area -->
+   <item>
+    <widget class="QWidget" name="bottomSection">
+     <layout class="QHBoxLayout" name="bottomLayout">
+      <property name="spacing"><number>16</number></property>
+      <!-- Left: phones, social, email, habits, hobbies, files, notes, events -->
+      <item>
+       <widget class="QScrollArea" name="leftScrollArea">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="widgetResizable">
+         <bool>true</bool>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <widget class="QWidget" name="bottomLeftWidget">
+         <layout class="QVBoxLayout" name="bottomLeftLayout">
+          <property name="leftMargin"><number>0</number></property>
+          <property name="topMargin"><number>0</number></property>
+          <property name="rightMargin"><number>8</number></property>
+          <property name="bottomMargin"><number>0</number></property>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+      <!-- Right: profile scroll area -->
+      <item>
+       <widget class="QScrollArea" name="profileScrollArea">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>2</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="widgetResizable">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="profileContents">
+         <layout class="QVBoxLayout" name="profileLayout">
+          <item>
+           <widget class="QLabel" name="profilePlaceholder">
+            <property name="text">
+             <string>Профиль загружается...</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignTop|Qt::AlignLeft</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="profileSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

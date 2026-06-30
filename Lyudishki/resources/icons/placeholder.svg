@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" fill="#0a0a0a"/>
+  <text x="100" y="80" text-anchor="middle" fill="#1f2a1f" font-family="monospace" font-size="48">&gt;_</text>
+  <text x="100" y="120" text-anchor="middle" fill="#1f2a1f" font-family="monospace" font-size="16">SELECT GROUP</text>
+</svg>

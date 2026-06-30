@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PersonEditForm</class>
+ <widget class="QWidget" name="PersonEditForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>700</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="leftMargin"><number>12</number></property>
+   <property name="topMargin"><number>8</number></property>
+   <property name="rightMargin"><number>12</number></property>
+   <property name="bottomMargin"><number>8</number></property>
+   <!-- Nav bar -->
+   <item>
+    <widget class="QWidget" name="editNavBar">
+     <layout class="QHBoxLayout" name="editNavLayout">
+      <property name="leftMargin"><number>0</number></property>
+      <property name="topMargin"><number>0</number></property>
+      <property name="rightMargin"><number>0</number></property>
+      <property name="bottomMargin"><number>0</number></property>
+      <item>
+       <widget class="QPushButton" name="cancelButton">
+        <property name="text"><string>← отмена</string></property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="editNavSpacer">
+        <property name="orientation"><enum>Qt::Horizontal</enum></property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="editTitle">
+        <property name="text"><string>Новый человек</string></property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="editNavSpacer2">
+        <property name="orientation"><enum>Qt::Horizontal</enum></property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="saveButton">
+        <property name="text"><string>save</string></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <!-- Tabs -->
+   <item>
+    <widget class="QTabWidget" name="editTabs">
+     <property name="currentIndex"><number>0</number></property>
+     <!-- Tab 1: Основное -->
+     <widget class="QWidget" name="tabBasic">
+      <attribute name="title"><string>Основное</string></attribute>
+      <layout class="QFormLayout" name="basicFormLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="lblEditPhoto"><property name="text"><string>Фото:</string></property></widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QWidget" name="photoWidget">
+         <layout class="QHBoxLayout" name="photoLayout">
+          <property name="leftMargin"><number>0</number></property>
+          <property name="topMargin"><number>0</number></property>
+          <property name="rightMargin"><number>0</number></property>
+          <property name="bottomMargin"><number>0</number></property>
+          <item>
+           <widget class="QLabel" name="photoPreview">
+            <property name="minimumSize"><size><width>60</width><height>60</height></size></property>
+            <property name="maximumSize"><size><width>60</width><height>60</height></size></property>
+            <property name="text"><string>—</string></property>
+            <property name="alignment"><set>Qt::AlignCenter</set></property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="choosePhotoBtn">
+            <property name="text"><string>выбрать...</string></property>
+           </widget>
+          </item>
+          <item>
+           <spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel"><property name="text"><string>Фамилия:</string></property></widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="editLastName"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel"><property name="text"><string>Имя:</string></property></widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="editFirstName"/>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel"><property name="text"><string>Отчество:</string></property></widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="editPatronymic"/>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel"><property name="text"><string>Группа:</string></property></widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QComboBox" name="editGroupCombo"/>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel"><property name="text"><string>Дата рождения:</string></property></widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QDateEdit" name="editBirthDate">
+         <property name="calendarPopup"><bool>true</bool></property>
+         <property name="displayFormat"><string>dd.MM.yyyy</string></property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel"><property name="text"><string>Телефон:</string></property></widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLineEdit" name="editPhone"/>
+       </item>
+       <item row="7" column="0">
+        <widget class="QLabel"><property name="text"><string>Способ связи:</string></property></widget>
+       </item>
+       <item row="7" column="1">
+        <widget class="QComboBox" name="editContactMethod">
+         <property name="editable"><bool>true</bool></property>
+         <item><property name="text"><string>Telegram</string></property></item>
+         <item><property name="text"><string>WhatsApp</string></property></item>
+         <item><property name="text"><string>Телефон</string></property></item>
+         <item><property name="text"><string>Email</string></property></item>
+         <item><property name="text"><string>Instagram</string></property></item>
+         <item><property name="text"><string>VK</string></property></item>
+         <item><property name="text"><string>Другое</string></property></item>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel"><property name="text"><string>Адрес:</string></property></widget>
+       </item>
+       <item row="8" column="1">
+        <widget class="QLineEdit" name="editAddress"/>
+       </item>
+       <item row="9" column="0">
+        <widget class="QLabel"><property name="text"><string>Примечание:</string></property></widget>
+       </item>
+       <item row="9" column="1">
+        <widget class="QLineEdit" name="editNote"/>
+       </item>
+      </layout>
+     </widget>
+     <!-- Tab 2: Доп. инфо -->
+     <widget class="QWidget" name="tabExtra">
+      <attribute name="title"><string>Доп. инфо</string></attribute>
+      <layout class="QFormLayout" name="extraFormLayout">
+       <item row="0" column="0">
+        <widget class="QLabel"><property name="text"><string>Привычки:</string></property></widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QTextEdit" name="editHabits">
+         <property name="maximumHeight"><number>80</number></property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel"><property name="text"><string>Увлечения:</string></property></widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QTextEdit" name="editHobbies">
+         <property name="maximumHeight"><number>80</number></property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <!-- Tab 3: Профиль -->
+     <widget class="QWidget" name="tabProfile">
+      <attribute name="title"><string>Профиль</string></attribute>
+      <layout class="QVBoxLayout" name="profileTabLayout">
+       <item>
+        <widget class="QScrollArea" name="profileEditScroll">
+         <property name="widgetResizable"><bool>true</bool></property>
+         <widget class="QWidget" name="profileEditContents">
+          <layout class="QFormLayout" name="profileEditFormLayout">
+           <!-- Личность -->
+           <item row="0" column="0" colspan="2">
+            <widget class="QLabel" name="sectPersonality"><property name="text"><string>— Личность —</string></property></widget>
+           </item>
+           <item row="1" column="0"><widget class="QLabel"><property name="text"><string>Пол:</string></property></widget></item>
+           <item row="1" column="1">
+            <widget class="QComboBox" name="editGender">
+             <item><property name="text"><string>Не указано</string></property></item>
+             <item><property name="text"><string>Мужской</string></property></item>
+             <item><property name="text"><string>Женский</string></property></item>
+             <item><property name="text"><string>Другое</string></property></item>
+            </widget>
+           </item>
+           <item row="2" column="0"><widget class="QLabel"><property name="text"><string>Характер:</string></property></widget></item>
+           <item row="2" column="1"><widget class="QTextEdit" name="editCharacter"><property name="maximumHeight"><number>60</number></property></widget></item>
+           <item row="3" column="0"><widget class="QLabel"><property name="text"><string>Интересы:</string></property></widget></item>
+           <item row="3" column="1"><widget class="QTextEdit" name="editInterests"><property name="maximumHeight"><number>60</number></property></widget></item>
+           <item row="4" column="0"><widget class="QLabel"><property name="text"><string>Юмор/триггеры:</string></property></widget></item>
+           <item row="4" column="1"><widget class="QTextEdit" name="editHumorTriggers"><property name="maximumHeight"><number>60</number></property></widget></item>
+           <!-- Взгляды -->
+           <item row="5" column="0" colspan="2">
+            <widget class="QLabel" name="sectViews"><property name="text"><string>— Взгляды —</string></property></widget>
+           </item>
+           <item row="6" column="0"><widget class="QLabel"><property name="text"><string>Политика:</string></property></widget></item>
+           <item row="6" column="1"><widget class="QLineEdit" name="editPoliticalViews"/></item>
+           <item row="7" column="0"><widget class="QLabel"><property name="text"><string>Религия:</string></property></widget></item>
+           <item row="7" column="1"><widget class="QLineEdit" name="editReligiousViews"/></item>
+           <item row="8" column="0"><widget class="QLabel"><property name="text"><string>Языки:</string></property></widget></item>
+           <item row="8" column="1"><widget class="QLineEdit" name="editLanguages"/></item>
+           <item row="9" column="0"><widget class="QLabel"><property name="text"><string>Никнеймы:</string></property></widget></item>
+           <item row="9" column="1"><widget class="QLineEdit" name="editNicknames"/></item>
+           <!-- Семья -->
+           <item row="10" column="0" colspan="2">
+            <widget class="QLabel" name="sectFamily"><property name="text"><string>— Семья и связи —</string></property></widget>
+           </item>
+           <item row="11" column="0"><widget class="QLabel"><property name="text"><string>Семья:</string></property></widget></item>
+           <item row="11" column="1"><widget class="QTextEdit" name="editFamily"><property name="maximumHeight"><number>60</number></property></widget></item>
+           <item row="12" column="0"><widget class="QLabel"><property name="text"><string>Статус:</string></property></widget></item>
+           <item row="12" column="1">
+            <widget class="QComboBox" name="editRelStatus">
+             <property name="editable"><bool>true</bool></property>
+             <item><property name="text"><string></string></property></item>
+             <item><property name="text"><string>Свободен(на)</string></property></item>
+             <item><property name="text"><string>Встречается</string></property></item>
+             <item><property name="text"><string>Помолвлен(а)</string></property></item>
+             <item><property name="text"><string>Женат/замужем</string></property></item>
+             <item><property name="text"><string>В разводе</string></property></item>
+             <item><property name="text"><string>Вдовец/вдова</string></property></item>
+             <item><property name="text"><string>Сложно</string></property></item>
+            </widget>
+           </item>
+           <item row="13" column="0"><widget class="QLabel"><property name="text"><string>Общие знакомые:</string></property></widget></item>
+           <item row="13" column="1"><widget class="QTextEdit" name="editMutualAcq"><property name="maximumHeight"><number>60</number></property></widget></item>
+           <item row="14" column="0"><widget class="QLabel"><property name="text"><string>Где познакомились:</string></property></widget></item>
+           <item row="14" column="1"><widget class="QLineEdit" name="editHowMet"/></item>
+           <!-- Работа -->
+           <item row="15" column="0" colspan="2">
+            <widget class="QLabel" name="sectWork"><property name="text"><string>— Работа и навыки —</string></property></widget>
+           </item>
+           <item row="16" column="0"><widget class="QLabel"><property name="text"><string>Карьера:</string></property></widget></item>
+           <item row="16" column="1"><widget class="QTextEdit" name="editCareer"><property name="maximumHeight"><number>60</number></property></widget></item>
+           <item row="17" column="0"><widget class="QLabel"><property name="text"><string>Образование:</string></property></widget></item>
+           <item row="17" column="1"><widget class="QLineEdit" name="editEducation"/></item>
+           <item row="18" column="0"><widget class="QLabel"><property name="text"><string>Навыки:</string></property></widget></item>
+           <item row="18" column="1"><widget class="QLineEdit" name="editSkills"/></item>
+           <item row="19" column="0"><widget class="QLabel"><property name="text"><string>График:</string></property></widget></item>
+           <item row="19" column="1">
+            <widget class="QComboBox" name="editWorkSchedule">
+             <property name="editable"><bool>true</bool></property>
+             <item><property name="text"><string></string></property></item>
+             <item><property name="text"><string>5/2</string></property></item>
+             <item><property name="text"><string>2/2</string></property></item>
+             <item><property name="text"><string>Сменный</string></property></item>
+             <item><property name="text"><string>Свободный</string></property></item>
+             <item><property name="text"><string>Удалённо</string></property></item>
+            </widget>
+           </item>
+           <item row="20" column="0"><widget class="QLabel"><property name="text"><string>Раб. контакты:</string></property></widget></item>
+           <item row="20" column="1"><widget class="QLineEdit" name="editWorkContacts"/></item>
+           <!-- Цифровой след -->
+           <item row="21" column="0" colspan="2">
+            <widget class="QLabel" name="sectDigital"><property name="text"><string>— Цифровой след —</string></property></widget>
+           </item>
+           <item row="22" column="0"><widget class="QLabel"><property name="text"><string>Платформы:</string></property></widget></item>
+           <item row="22" column="1"><widget class="QTextEdit" name="editPlatforms"><property name="maximumHeight"><number>60</number></property></widget></item>
+           <item row="23" column="0"><widget class="QLabel"><property name="text"><string>Медиа:</string></property></widget></item>
+           <item row="23" column="1"><widget class="QTextEdit" name="editMedia"><property name="maximumHeight"><number>60</number></property></widget></item>
+           <!-- Быт -->
+           <item row="24" column="0" colspan="2">
+            <widget class="QLabel" name="sectLife"><property name="text"><string>— Быт —</string></property></widget>
+           </item>
+           <item row="25" column="0"><widget class="QLabel"><property name="text"><string>Собственность:</string></property></widget></item>
+           <item row="25" column="1"><widget class="QLineEdit" name="editProperty"/></item>
+           <item row="26" column="0"><widget class="QLabel"><property name="text"><string>Любимые места:</string></property></widget></item>
+           <item row="26" column="1"><widget class="QLineEdit" name="editFavPlaces"/></item>
+           <item row="27" column="0"><widget class="QLabel"><property name="text"><string>Питомцы:</string></property></widget></item>
+           <item row="27" column="1"><widget class="QLineEdit" name="editPets"/></item>
+           <!-- Здоровье -->
+           <item row="28" column="0" colspan="2">
+            <widget class="QLabel" name="sectHealth"><property name="text"><string>— Здоровье —</string></property></widget>
+           </item>
+           <item row="29" column="0"><widget class="QLabel"><property name="text"><string>Здоровье/аллергии:</string></property></widget></item>
+           <item row="29" column="1"><widget class="QTextEdit" name="editHealth"><property name="maximumHeight"><number>60</number></property></widget></item>
+           <!-- Подарки и предпочтения -->
+           <item row="30" column="0" colspan="2">
+            <widget class="QLabel" name="sectGifts"><property name="text"><string>— Подарки и предпочтения —</string></property></widget>
+           </item>
+           <item row="31" column="0"><widget class="QLabel"><property name="text"><string>Идеи подарков:</string></property></widget></item>
+           <item row="31" column="1"><widget class="QTextEdit" name="editGiftIdeas"><property name="maximumHeight"><number>60</number></property></widget></item>
+           <item row="32" column="0"><widget class="QLabel"><property name="text"><string>Размер одежды:</string></property></widget></item>
+           <item row="32" column="1"><widget class="QLineEdit" name="editClothingSize"/></item>
+           <item row="33" column="0"><widget class="QLabel"><property name="text"><string>Любимая еда:</string></property></widget></item>
+           <item row="33" column="1"><widget class="QLineEdit" name="editFavoriteFood"/></item>
+           <!-- Мета -->
+           <item row="34" column="0" colspan="2">
+            <widget class="QLabel" name="sectMeta"><property name="text"><string>— Мета —</string></property></widget>
+           </item>
+           <item row="35" column="0"><widget class="QLabel"><property name="text"><string>Надёжность:</string></property></widget></item>
+           <item row="35" column="1">
+            <widget class="QComboBox" name="editReliability">
+             <item><property name="text"><string></string></property></item>
+             <item><property name="text"><string>Низкая</string></property></item>
+             <item><property name="text"><string>Средняя</string></property></item>
+             <item><property name="text"><string>Высокая</string></property></item>
+            </widget>
+           </item>
+           <item row="36" column="0"><widget class="QLabel"><property name="text"><string>Актуальность:</string></property></widget></item>
+           <item row="36" column="1"><widget class="QLineEdit" name="editInfoFreshness"/></item>
+           <!-- Прочее -->
+           <item row="37" column="0" colspan="2">
+            <widget class="QLabel" name="sectOther"><property name="text"><string>— Прочее —</string></property></widget>
+           </item>
+           <item row="38" column="0"><widget class="QLabel"><property name="text"><string>Общая заметка:</string></property></widget></item>
+           <item row="38" column="1"><widget class="QTextEdit" name="editAdditionalNotes"><property name="maximumHeight"><number>100</number></property></widget></item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
