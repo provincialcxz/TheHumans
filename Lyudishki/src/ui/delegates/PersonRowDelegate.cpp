@@ -3,8 +3,10 @@
 #include <QPainter>
 #include <QApplication>
 #include <QPixmap>
+#include <QPixmapCache>
 #include <QPainterPath>
 #include <QFile>
+#include <QFileInfo>
 
 PersonRowDelegate::PersonRowDelegate(QObject *parent)
     : QStyledItemDelegate(parent)
@@ -36,8 +38,18 @@ void PersonRowDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     QRect avatarRect(x, cy - avatarSize / 2, avatarSize, avatarSize);
     QString photoPath = index.data(PersonListModel::PhotoPathRole).toString();
     if (!photoPath.isEmpty() && QFile::exists(photoPath)) {
-        QPixmap pix(photoPath);
-        pix = pix.scaled(avatarSize, avatarSize, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+        // Cache the already-scaled avatar pixmap, keyed by path+mtime+size, so
+        // scrolling doesn't re-decode the photo from disk on every repaint.
+        const QString cacheKey = QStringLiteral("lyud_avatar_%1_%2_%3")
+            .arg(photoPath)
+            .arg(QFileInfo(photoPath).lastModified().toMSecsSinceEpoch())
+            .arg(avatarSize);
+        QPixmap pix;
+        if (!QPixmapCache::find(cacheKey, &pix)) {
+            QPixmap raw(photoPath);
+            pix = raw.scaled(avatarSize, avatarSize, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+            QPixmapCache::insert(cacheKey, pix);
+        }
         QPainterPath clip;
         clip.addEllipse(avatarRect);
         painter->setClipPath(clip);

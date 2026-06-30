@@ -3,6 +3,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDateTime>
+#include <QImage>
 
 PeopleService::PeopleService(std::shared_ptr<IPersonRepository> repo, const QString &attachmentsDir)
     : m_repo(std::move(repo))
@@ -47,7 +48,20 @@ QString PeopleService::importPhoto(int personId, const QString &sourceFilePath)
         destPath = photoDir + "/photo" + (ext.isEmpty() ? "" : "." + ext);
         if (QFile::exists(destPath))
             QFile::remove(destPath);
-        QFile::copy(sourceFilePath, destPath);
+
+        // Downscale to the largest size the UI ever displays (150x150 detail
+        // photo) with headroom, so a multi-MB phone photo doesn't get carried
+        // around (and re-decoded on every list repaint) at full resolution.
+        const int kMaxDimension = 640;
+        QImage img(sourceFilePath);
+        if (!img.isNull()) {
+            if (img.width() > kMaxDimension || img.height() > kMaxDimension)
+                img = img.scaled(kMaxDimension, kMaxDimension, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            if (!img.save(destPath, nullptr, 90))
+                QFile::copy(sourceFilePath, destPath); // fallback if save fails
+        } else {
+            QFile::copy(sourceFilePath, destPath); // unrecognized format: copy as-is
+        }
     }
 
     return destPath;
