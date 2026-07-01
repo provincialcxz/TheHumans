@@ -428,12 +428,39 @@ private slots:
         QCOMPARE(anna.lastName, "Смирнова");
         QCOMPARE(anna.phone, "+79997654321");
 
+        // Both go into a fresh "Импорт_<date>" group, not into an
+        // arbitrary pre-existing one (e.g. the seeded "Родственники").
+        QVERIFY(ivan.groupId != 0);
+        QCOMPARE(anna.groupId, ivan.groupId);
+        Group importGroup = groupRepo->getById(ivan.groupId);
+        QVERIFY(importGroup.name.startsWith("Импорт_"));
+        QVERIFY(importGroup.name != "Родственники");
+
         // Re-importing the same file must skip both (exact duplicate).
         skipped = 0;
         imported = dataSvc.importPeopleVCard(vcfPath, &skipped);
         QCOMPARE(imported, 0);
         QCOMPARE(skipped, 2);
         QCOMPARE(personRepo->getAll().size(), 2); // no duplicates created
+
+        // A second, genuinely new contact imported the same day reuses the
+        // same "Импорт_<date>" group instead of failing on its UNIQUE name.
+        QString vcfPath2 = dir.path() + "/more_contacts.vcf";
+        QFile vcf2(vcfPath2);
+        QVERIFY(vcf2.open(QIODevice::WriteOnly | QIODevice::Text));
+        vcf2.write(QByteArray(
+            "BEGIN:VCARD\r\n"
+            "VERSION:3.0\r\n"
+            "FN:Пётр Кузнецов\r\n"
+            "TEL:+79111112233\r\n"
+            "END:VCARD\r\n"
+        ));
+        vcf2.close();
+
+        skipped = 0;
+        imported = dataSvc.importPeopleVCard(vcfPath2, &skipped);
+        QCOMPARE(imported, 1);
+        QCOMPARE(groupRepo->getAll().size(), 5); // still just one import group added overall
     }
 };
 

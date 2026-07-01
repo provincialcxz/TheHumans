@@ -436,10 +436,11 @@ int DataService::importPeopleVCard(const QString &filePath, int *skippedCount)
 
     auto entries = parseVCardFile(content);
 
-    // vCards carry no group info — fall back to the first known group,
-    // same as importPeopleJson does when a JSON entry's group is missing.
-    auto groups = m_groupRepo->getAll();
-    int fallbackGroupId = groups.isEmpty() ? 0 : groups.first().id;
+    // vCards carry no group info. Rather than dumping everyone into whichever
+    // group happens to sort first, file each import under its own
+    // "Импорт_<date>" group — created lazily so a run that only hits
+    // duplicates doesn't leave behind an empty group.
+    int importGroupId = 0;
 
     QSet<QString> existingIdentities;
     for (const auto &existing : m_personRepo->getAll()) {
@@ -456,8 +457,22 @@ int DataService::importPeopleVCard(const QString &filePath, int *skippedCount)
             continue;
         }
 
+        if (importGroupId == 0) {
+            QString groupName = "Импорт_" + QDate::currentDate().toString("yyyy-MM-dd");
+            for (const auto &g : m_groupRepo->getAll()) {
+                if (g.name == groupName) { importGroupId = g.id; break; }
+            }
+            if (importGroupId == 0) {
+                // A second vCard import on the same day reuses this group
+                // instead of failing on the UNIQUE(name) constraint.
+                Group g;
+                g.name = groupName;
+                importGroupId = m_groupRepo->add(g);
+            }
+        }
+
         Person p;
-        p.groupId = fallbackGroupId;
+        p.groupId = importGroupId;
         p.lastName = entry.lastName;
         p.firstName = entry.firstName;
         p.patronymic = entry.patronymic;
