@@ -123,6 +123,11 @@ QMap<int, QString> PeopleService::getReliabilityMap()
     return m_repo->getReliabilityMap();
 }
 
+QVector<RelationshipStatusChange> PeopleService::getRelationshipStatusHistory(int personId)
+{
+    return m_repo->getRelationshipStatusHistory(personId);
+}
+
 QVector<SocialAccount> PeopleService::getSocialAccounts(int personId)
 {
     return m_repo->getSocialAccounts(personId);

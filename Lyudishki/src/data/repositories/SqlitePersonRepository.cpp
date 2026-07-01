@@ -187,6 +187,27 @@ PersonProfile SqlitePersonRepository::loadProfile(int personId)
 
 bool SqlitePersonRepository::saveProfile(const PersonProfile &profile)
 {
+    // Record relationship_status changes before overwriting the row — this
+    // is the only profile field with dedicated history tracking, since it's
+    // the one whose *trajectory* ("встречается" -> "рассталась") matters,
+    // not just its current value.
+    QSqlQuery statusQuery(m_db);
+    statusQuery.prepare("SELECT relationship_status FROM person_profile WHERE person_id = ?");
+    statusQuery.addBindValue(profile.personId);
+    if (statusQuery.exec() && statusQuery.next()) {
+        QString oldStatus = statusQuery.value(0).toString();
+        if (oldStatus != profile.relationshipStatus) {
+            QSqlQuery histQuery(m_db);
+            histQuery.prepare("INSERT INTO relationship_status_history (person_id, old_value, new_value) "
+                              "VALUES (?,?,?)");
+            histQuery.addBindValue(profile.personId);
+            histQuery.addBindValue(oldStatus);
+            histQuery.addBindValue(profile.relationshipStatus);
+            if (!histQuery.exec())
+                qWarning("saveProfile (status history): %s", qPrintable(histQuery.lastError().text()));
+        }
+    }
+
     QSqlQuery q(m_db);
     q.prepare("INSERT OR REPLACE INTO person_profile "
               "(person_id, character, interests, humor_and_triggers, political_views, "
@@ -231,6 +252,27 @@ bool SqlitePersonRepository::saveProfile(const PersonProfile &profile)
         return false;
     }
     return true;
+}
+
+QVector<RelationshipStatusChange> SqlitePersonRepository::getRelationshipStatusHistory(int personId)
+{
+    QVector<RelationshipStatusChange> result;
+    QSqlQuery q(m_db);
+    q.prepare("SELECT id, person_id, old_value, new_value, changed_at FROM relationship_status_history "
+              "WHERE person_id = ? ORDER BY changed_at ASC, id ASC");
+    q.addBindValue(personId);
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::getRelationshipStatusHistory: %s", qPrintable(q.lastError().text()));
+    while (q.next()) {
+        RelationshipStatusChange c;
+        c.id = q.value(0).toInt();
+        c.personId = q.value(1).toInt();
+        c.oldValue = q.value(2).toString();
+        c.newValue = q.value(3).toString();
+        c.changedAt = QDateTime::fromString(q.value(4).toString(), Qt::ISODate);
+        result.append(c);
+    }
+    return result;
 }
 
 QMap<int, QString> SqlitePersonRepository::getReliabilityMap()

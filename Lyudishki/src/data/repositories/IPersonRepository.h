@@ -13,6 +13,7 @@
 #include "domain/PersonPhoto.h"
 #include "domain/PersonDocument.h"
 #include "domain/Tag.h"
+#include "domain/RelationshipStatusChange.h"
 
 class IPersonRepository {
 public:
@@ -28,6 +29,11 @@ public:
     // Profile (lazy)
     virtual PersonProfile loadProfile(int personId) = 0;
     virtual bool saveProfile(const PersonProfile &profile) = 0;
+
+    // History of PersonProfile::relationshipStatus changes over time —
+    // recorded automatically by saveProfile() whenever the value differs
+    // from what's currently stored, oldest first.
+    virtual QVector<RelationshipStatusChange> getRelationshipStatusHistory(int personId) = 0;
 
     // Lightweight side-load for list sorting: avoids pulling the full
     // (lazy-loaded) profile per person just to sort by reliability.

@@ -21,4 +21,5 @@ private:
     bool migration_v7();
     bool migration_v8();
     bool migration_v9();
+    bool migration_v10();
 };

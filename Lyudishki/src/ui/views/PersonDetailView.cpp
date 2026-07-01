@@ -935,6 +935,22 @@ void PersonDetailView::populateProfile(int personId)
     addSectionHeader("Семья и связи");
     addProfileField("Семья:", prof.family);
     addProfileField("Статус:", prof.relationshipStatus);
+    {
+        auto history = m_peopleService->getRelationshipStatusHistory(personId);
+        if (!history.isEmpty()) {
+            QStringList lines;
+            for (const auto &change : history) {
+                QString from = change.oldValue.isEmpty() ? "—" : change.oldValue;
+                QString to = change.newValue.isEmpty() ? "—" : change.newValue;
+                lines << QString("%1: %2 → %3")
+                             .arg(change.changedAt.toString("dd.MM.yyyy"), from, to);
+            }
+            auto *histLabel = new QLabel(lines.join('\n'), ui->profileContents);
+            histLabel->setStyleSheet("color: #7d8c7d; font-size: 11px; padding-left: 140px;");
+            histLabel->setWordWrap(true);
+            ui->profileContents->layout()->addWidget(histLabel);
+        }
+    }
     addProfileField("Общие знакомые:", prof.mutualAcquaintances);
     addProfileField("Как познакомились:", prof.howAndWhenMet);
 

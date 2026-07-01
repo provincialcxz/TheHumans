@@ -16,6 +16,7 @@ public:
 
     PersonProfile loadProfile(int personId) override;
     bool saveProfile(const PersonProfile &profile) override;
+    QVector<RelationshipStatusChange> getRelationshipStatusHistory(int personId) override;
     QMap<int, QString> getReliabilityMap() override;
     QVector<int> searchPersonIds(const QString &query) override;
 

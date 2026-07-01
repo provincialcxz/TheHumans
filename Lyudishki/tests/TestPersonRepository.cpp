@@ -294,6 +294,46 @@ private slots:
         QCOMPARE(map.value(pid2), "Низкая");
     }
 
+    void testRelationshipStatusHistory()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        SqlitePersonRepository repo(dbm.database());
+
+        Person p;
+        p.groupId = 1;
+        p.firstName = "Status";
+        p.lastName = "Test";
+        int pid = repo.add(p);
+
+        // No change yet — profile row was created empty by add().
+        QCOMPARE(repo.getRelationshipStatusHistory(pid).size(), 0);
+
+        PersonProfile prof;
+        prof.personId = pid;
+        prof.relationshipStatus = "Встречается";
+        QVERIFY(repo.saveProfile(prof));
+
+        auto history1 = repo.getRelationshipStatusHistory(pid);
+        QCOMPARE(history1.size(), 1);
+        QCOMPARE(history1[0].oldValue, "");
+        QCOMPARE(history1[0].newValue, "Встречается");
+
+        // Saving with the same status must not add a redundant entry.
+        QVERIFY(repo.saveProfile(prof));
+        QCOMPARE(repo.getRelationshipStatusHistory(pid).size(), 1);
+
+        prof.relationshipStatus = "Рассталась";
+        QVERIFY(repo.saveProfile(prof));
+
+        auto history2 = repo.getRelationshipStatusHistory(pid);
+        QCOMPARE(history2.size(), 2);
+        QCOMPARE(history2[1].oldValue, "Встречается");
+        QCOMPARE(history2[1].newValue, "Рассталась");
+    }
+
     void testPhotoGallery()
     {
         DatabaseManager dbm(":memory:");
