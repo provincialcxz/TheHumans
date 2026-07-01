@@ -88,6 +88,30 @@ private slots:
         QCOMPARE(svc.getPerson(id).lastContactDate, QDate::currentDate());
     }
 
+    void testSetAsAvatar()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        auto repo = std::make_shared<SqlitePersonRepository>(dbm.database());
+        PeopleService svc(repo);
+
+        Person p;
+        p.groupId = 1;
+        p.firstName = "Avatar";
+        p.lastName = "Test";
+        int id = svc.addPerson(p);
+
+        PersonPhoto ph;
+        ph.personId = id;
+        ph.filePath = "/tmp/some_photo.jpg";
+        int phId = repo->addPhoto(ph);
+
+        QVERIFY(svc.setAsAvatar(id, phId));
+        QCOMPARE(svc.getPerson(id).photoPath, "/tmp/some_photo.jpg");
+    }
+
     void testSearchService()
     {
         DatabaseManager dbm(":memory:");

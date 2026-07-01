@@ -10,6 +10,7 @@
 #include "domain/PhoneNumber.h"
 #include "domain/PersonNote.h"
 #include "domain/PersonFile.h"
+#include "domain/PersonPhoto.h"
 #include "domain/PersonDocument.h"
 #include "domain/Tag.h"
 
@@ -62,6 +63,12 @@ public:
     virtual PersonFile getFileById(int id) = 0;
     virtual int addFile(const PersonFile &file) = 0;
     virtual bool removeFile(int id) = 0;
+
+    // Photo gallery (additional photos beyond Person::photoPath, the avatar)
+    virtual QVector<PersonPhoto> getPhotos(int personId) = 0;
+    virtual PersonPhoto getPhotoById(int id) = 0;
+    virtual int addPhoto(const PersonPhoto &photo) = 0;
+    virtual bool removePhoto(int id) = 0;
 
     // Documents (passport, SNILS, bank details, etc.)
     virtual QVector<PersonDocument> getDocuments(int personId) = 0;

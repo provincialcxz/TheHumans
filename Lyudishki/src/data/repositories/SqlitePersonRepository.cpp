@@ -373,6 +373,70 @@ bool SqlitePersonRepository::removeEmail(int id)
     return true;
 }
 
+// --- Photo gallery ---
+
+QVector<PersonPhoto> SqlitePersonRepository::getPhotos(int personId)
+{
+    QVector<PersonPhoto> result;
+    QSqlQuery q(m_db);
+    q.prepare("SELECT id, person_id, file_path, added_at FROM person_photos "
+              "WHERE person_id = ? ORDER BY added_at DESC");
+    q.addBindValue(personId);
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::getPhotos: %s", qPrintable(q.lastError().text()));
+    while (q.next()) {
+        PersonPhoto p;
+        p.id = q.value(0).toInt();
+        p.personId = q.value(1).toInt();
+        p.filePath = q.value(2).toString();
+        p.addedAt = QDateTime::fromString(q.value(3).toString(), Qt::ISODate);
+        result.append(p);
+    }
+    return result;
+}
+
+PersonPhoto SqlitePersonRepository::getPhotoById(int id)
+{
+    PersonPhoto p;
+    QSqlQuery q(m_db);
+    q.prepare("SELECT id, person_id, file_path, added_at FROM person_photos WHERE id = ?");
+    q.addBindValue(id);
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::getPhotoById: %s", qPrintable(q.lastError().text()));
+    if (q.next()) {
+        p.id = q.value(0).toInt();
+        p.personId = q.value(1).toInt();
+        p.filePath = q.value(2).toString();
+        p.addedAt = QDateTime::fromString(q.value(3).toString(), Qt::ISODate);
+    }
+    return p;
+}
+
+int SqlitePersonRepository::addPhoto(const PersonPhoto &photo)
+{
+    QSqlQuery q(m_db);
+    q.prepare("INSERT INTO person_photos (person_id, file_path) VALUES (?,?)");
+    q.addBindValue(photo.personId);
+    q.addBindValue(photo.filePath);
+    if (!q.exec()) {
+        qWarning("addPhoto: %s", qPrintable(q.lastError().text()));
+        return -1;
+    }
+    return q.lastInsertId().toInt();
+}
+
+bool SqlitePersonRepository::removePhoto(int id)
+{
+    QSqlQuery q(m_db);
+    q.prepare("DELETE FROM person_photos WHERE id = ?");
+    q.addBindValue(id);
+    if (!q.exec()) {
+        qWarning("SqlitePersonRepository::removePhoto: %s", qPrintable(q.lastError().text()));
+        return false;
+    }
+    return true;
+}
+
 // --- Documents ---
 
 QVector<PersonDocument> SqlitePersonRepository::getDocuments(int personId)

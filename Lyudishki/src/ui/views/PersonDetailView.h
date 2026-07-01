@@ -43,6 +43,7 @@ private:
     void buildSocialSection(int personId);
     void buildEmailSection(int personId);
     void buildHabitsHobbies(const Person &p);
+    void buildPhotoGallerySection(int personId);
     void buildFilesSection(int personId);
     void buildNotesSection(int personId);
     void buildEventsSection(int personId);
@@ -55,6 +56,9 @@ private:
     void onDeleteSocial(int id);
     void onAddEmail();
     void onDeleteEmail(int id);
+    void onAddPhotoToGallery();
+    void onDeletePhotoFromGallery(int id);
+    void onSetAsAvatar(int id);
     void onAddFile();
     void onDeleteFile(int id);
     void onAddNote();

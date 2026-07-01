@@ -40,6 +40,11 @@ public:
     int addFile(const PersonFile &file) override;
     bool removeFile(int id) override;
 
+    QVector<PersonPhoto> getPhotos(int personId) override;
+    PersonPhoto getPhotoById(int id) override;
+    int addPhoto(const PersonPhoto &photo) override;
+    bool removePhoto(int id) override;
+
     QVector<PersonDocument> getDocuments(int personId) override;
     int addDocument(const PersonDocument &document) override;
     bool removeDocument(int id) override;

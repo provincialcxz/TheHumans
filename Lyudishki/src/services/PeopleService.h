@@ -49,6 +49,13 @@ public:
     int attachFile(int personId, const QString &sourceFilePath);
     bool removeFile(int id);
 
+    // Photo gallery: additional photos beyond the avatar (Person::photoPath).
+    QVector<PersonPhoto> getPhotos(int personId);
+    int addPhotoToGallery(int personId, const QString &sourceFilePath);
+    bool removePhotoFromGallery(int photoId);
+    // Promotes a gallery photo to be the person's avatar.
+    bool setAsAvatar(int personId, int photoId);
+
     QVector<PersonDocument> getDocuments(int personId);
     int addDocument(const PersonDocument &document);
     bool removeDocument(int id);

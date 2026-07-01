@@ -10,7 +10,7 @@ MigrationManager::MigrationManager(QSqlDatabase &db)
 bool MigrationManager::migrate()
 {
     int ver = currentVersion();
-    const int targetVersion = 8;
+    const int targetVersion = 9;
     while (ver < targetVersion) {
         int next = ver + 1;
         qInfo("MigrationManager: running migration v%d", next);
@@ -50,6 +50,7 @@ bool MigrationManager::runMigration(int version)
     case 6: return migration_v6();
     case 7: return migration_v7();
     case 8: return migration_v8();
+    case 9: return migration_v9();
     default: return false;
     }
 }
@@ -431,6 +432,31 @@ bool MigrationManager::migration_v8()
     for (const auto &sql : statements) {
         if (!q.exec(sql)) {
             qWarning("Migration v8 failed: %s\nSQL: %s",
+                     qPrintable(q.lastError().text()), qPrintable(sql));
+            m_db.rollback();
+            return false;
+        }
+    }
+    m_db.commit();
+    return true;
+}
+
+bool MigrationManager::migration_v9()
+{
+    QSqlQuery q(m_db);
+    QStringList statements = {
+        "CREATE TABLE IF NOT EXISTS person_photos ("
+        "  id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "  person_id INTEGER NOT NULL REFERENCES person(id) ON DELETE CASCADE,"
+        "  file_path TEXT NOT NULL DEFAULT '',"
+        "  added_at TEXT NOT NULL DEFAULT (datetime('now'))"
+        ")",
+    };
+
+    m_db.transaction();
+    for (const auto &sql : statements) {
+        if (!q.exec(sql)) {
+            qWarning("Migration v9 failed: %s\nSQL: %s",
                      qPrintable(q.lastError().text()), qPrintable(sql));
             m_db.rollback();
             return false;

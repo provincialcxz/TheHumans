@@ -122,6 +122,7 @@ void PersonDetailView::populateLeftColumn(int personId)
     buildSocialSection(personId);
     buildEmailSection(personId);
     buildHabitsHobbies(p);
+    buildPhotoGallerySection(personId);
     buildFilesSection(personId);
     buildNotesSection(personId);
     buildEventsSection(personId);
@@ -571,6 +572,84 @@ void PersonDetailView::buildHabitsHobbies(const Person &p)
     hobbiesLbl->setWordWrap(true);
     hobbiesLbl->setStyleSheet("color: #00ff41; font-size: 13px;");
     ui->bottomLeftWidget->layout()->addWidget(hobbiesLbl);
+}
+
+// --- Photo gallery ---
+
+void PersonDetailView::buildPhotoGallerySection(int personId)
+{
+    addLeftSectionHeader("Фото:");
+    auto photos = m_peopleService->getPhotos(personId);
+
+    if (photos.isEmpty()) {
+        auto *lbl = new QLabel("—", ui->bottomLeftWidget);
+        lbl->setStyleSheet("color: #7d8c7d;");
+        ui->bottomLeftWidget->layout()->addWidget(lbl);
+    } else {
+        for (const auto &ph : photos) {
+            auto *row = new QWidget(ui->bottomLeftWidget);
+            auto *rl = new QHBoxLayout(row);
+            rl->setContentsMargins(0, 1, 0, 1);
+            rl->setSpacing(6);
+
+            auto *thumb = new QLabel(row);
+            thumb->setFixedSize(40, 40);
+            if (QFile::exists(ph.filePath)) {
+                QPixmap pix(ph.filePath);
+                thumb->setPixmap(pix.scaled(40, 40, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
+            } else {
+                thumb->setText("?");
+                thumb->setAlignment(Qt::AlignCenter);
+            }
+            rl->addWidget(thumb);
+
+            auto *avatarBtn = new QPushButton("аватар", row);
+            avatarBtn->setStyleSheet("color: #1b9e4b; border: 1px solid #1f2a1f; font-size: 11px; padding: 2px 6px;");
+            int phId = ph.id;
+            connect(avatarBtn, &QPushButton::clicked, this, [this, phId]() { onSetAsAvatar(phId); });
+            rl->addWidget(avatarBtn);
+
+            rl->addStretch(1);
+
+            auto *delBtn = new QPushButton("×", row);
+            delBtn->setFixedSize(20, 20);
+            delBtn->setStyleSheet("color: #ff3b30; border: 1px solid #ff3b30; font-size: 12px; padding: 0;");
+            connect(delBtn, &QPushButton::clicked, this, [this, phId]() { onDeletePhotoFromGallery(phId); });
+            rl->addWidget(delBtn);
+
+            ui->bottomLeftWidget->layout()->addWidget(row);
+        }
+    }
+
+    auto *addBtn = new QPushButton("+ фото", ui->bottomLeftWidget);
+    addBtn->setStyleSheet("color: #1b9e4b; border: 1px solid #1f2a1f; padding: 3px 8px; font-size: 12px;");
+    connect(addBtn, &QPushButton::clicked, this, &PersonDetailView::onAddPhotoToGallery);
+    ui->bottomLeftWidget->layout()->addWidget(addBtn);
+}
+
+void PersonDetailView::onAddPhotoToGallery()
+{
+    QString path = QFileDialog::getOpenFileName(this, "Выбрать фото", QString(),
+                                                 "Изображения (*.png *.jpg *.jpeg *.bmp *.webp)");
+    if (path.isEmpty()) return;
+    m_peopleService->addPhotoToGallery(m_currentPersonId, path);
+    populateLeftColumn(m_currentPersonId);
+}
+
+void PersonDetailView::onDeletePhotoFromGallery(int id)
+{
+    auto reply = QMessageBox::question(this, "Удаление", "Удалить фото из галереи?",
+                                        QMessageBox::Yes | QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        m_peopleService->removePhotoFromGallery(id);
+        populateLeftColumn(m_currentPersonId);
+    }
+}
+
+void PersonDetailView::onSetAsAvatar(int id)
+{
+    m_peopleService->setAsAvatar(m_currentPersonId, id);
+    showPerson(m_currentPersonId);
 }
 
 // --- Files ---

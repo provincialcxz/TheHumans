@@ -240,6 +240,50 @@ bool PeopleService::removeFile(int id)
     return m_repo->removeFile(id);
 }
 
+QVector<PersonPhoto> PeopleService::getPhotos(int personId)
+{
+    return m_repo->getPhotos(personId);
+}
+
+int PeopleService::addPhotoToGallery(int personId, const QString &sourceFilePath)
+{
+    QFileInfo info(sourceFilePath);
+    QString destPath = sourceFilePath;
+
+    if (!m_attachmentsDir.isEmpty()) {
+        QString galleryDir = m_attachmentsDir + "/photos/person_" + QString::number(personId) + "/gallery";
+        QDir().mkpath(galleryDir);
+        QString ts = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmsszzz");
+        QString ext = info.suffix();
+        destPath = galleryDir + "/" + ts + (ext.isEmpty() ? "" : "." + ext);
+        QFile::copy(sourceFilePath, destPath);
+    }
+
+    PersonPhoto photo;
+    photo.personId = personId;
+    photo.filePath = destPath;
+    return m_repo->addPhoto(photo);
+}
+
+bool PeopleService::removePhotoFromGallery(int photoId)
+{
+    PersonPhoto p = m_repo->getPhotoById(photoId);
+    if (!p.filePath.isEmpty() && !m_attachmentsDir.isEmpty() && p.filePath.startsWith(m_attachmentsDir))
+        QFile::remove(p.filePath);
+    return m_repo->removePhoto(photoId);
+}
+
+bool PeopleService::setAsAvatar(int personId, int photoId)
+{
+    PersonPhoto photo = m_repo->getPhotoById(photoId);
+    if (photo.id == 0 || photo.personId != personId) return false;
+
+    Person p = m_repo->getById(personId);
+    if (p.id == 0) return false;
+    p.photoPath = photo.filePath;
+    return m_repo->update(p);
+}
+
 QVector<PersonEvent> PeopleService::getEvents(int personId)
 {
     return m_repo->getEvents(personId);

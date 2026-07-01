@@ -294,6 +294,38 @@ private slots:
         QCOMPARE(map.value(pid2), "Низкая");
     }
 
+    void testPhotoGallery()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        SqlitePersonRepository repo(dbm.database());
+
+        Person p;
+        p.groupId = 1;
+        p.firstName = "Photo";
+        p.lastName = "Test";
+        int pid = repo.add(p);
+
+        PersonPhoto ph;
+        ph.personId = pid;
+        ph.filePath = "/tmp/gallery1.jpg";
+        int phId = repo.addPhoto(ph);
+        QVERIFY(phId > 0);
+
+        auto photos = repo.getPhotos(pid);
+        QCOMPARE(photos.size(), 1);
+        QCOMPARE(photos[0].filePath, "/tmp/gallery1.jpg");
+        QVERIFY(photos[0].addedAt.isValid());
+
+        auto fetched = repo.getPhotoById(phId);
+        QCOMPARE(fetched.personId, pid);
+
+        QVERIFY(repo.removePhoto(phId));
+        QCOMPARE(repo.getPhotos(pid).size(), 0);
+    }
+
     void testDocuments()
     {
         DatabaseManager dbm(":memory:");
