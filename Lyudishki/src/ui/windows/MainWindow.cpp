@@ -83,6 +83,7 @@ MainWindow::MainWindow(AppContext &ctx, QWidget *parent)
     connect(m_detailView, &PersonDetailView::backRequested, this, &MainWindow::onBackToList);
     connect(m_detailView, &PersonDetailView::editRequested, this, &MainWindow::onEditPerson);
     connect(m_detailView, &PersonDetailView::deleteRequested, this, &MainWindow::onDeletePerson);
+    connect(m_detailView, &PersonDetailView::personLinkClicked, this, &MainWindow::onPersonSelected);
 
     // Edit view
     connect(m_editView, &PersonEditView::saved, this, &MainWindow::onPersonSaved);

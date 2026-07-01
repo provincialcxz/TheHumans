@@ -605,6 +605,57 @@ bool SqlitePersonRepository::removeTagFromPerson(int personId, int tagId)
     return true;
 }
 
+// --- Relations ---
+
+QVector<PersonRelation> SqlitePersonRepository::getRelationsForPerson(int personId)
+{
+    QVector<PersonRelation> result;
+    QSqlQuery q(m_db);
+    q.prepare("SELECT id, person_a_id, person_b_id, relation_type, note FROM person_relations "
+              "WHERE person_a_id = ? OR person_b_id = ?");
+    q.addBindValue(personId);
+    q.addBindValue(personId);
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::getRelationsForPerson: %s", qPrintable(q.lastError().text()));
+    while (q.next()) {
+        PersonRelation r;
+        r.id = q.value(0).toInt();
+        r.personAId = q.value(1).toInt();
+        r.personBId = q.value(2).toInt();
+        r.relationType = q.value(3).toString();
+        r.note = q.value(4).toString();
+        result.append(r);
+    }
+    return result;
+}
+
+int SqlitePersonRepository::addRelation(const PersonRelation &relation)
+{
+    QSqlQuery q(m_db);
+    q.prepare("INSERT INTO person_relations (person_a_id, person_b_id, relation_type, note) VALUES (?,?,?,?)");
+    q.addBindValue(relation.personAId);
+    q.addBindValue(relation.personBId);
+    q.addBindValue(relation.relationType);
+    q.addBindValue(relation.note);
+    if (!q.exec()) {
+        qWarning("addRelation: %s", qPrintable(q.lastError().text()));
+        return -1;
+    }
+    return q.lastInsertId().toInt();
+}
+
+bool SqlitePersonRepository::removeRelation(int id)
+{
+    QSqlQuery q(m_db);
+    q.prepare("DELETE FROM person_relations WHERE id = ?");
+    q.addBindValue(id);
+    if (!q.exec()) {
+        qWarning("SqlitePersonRepository::removeRelation: %s", qPrintable(q.lastError().text()));
+        return false;
+    }
+    return true;
+}
+
 // --- Phone Numbers ---
 
 QVector<PhoneNumber> SqlitePersonRepository::getPhoneNumbers(int personId)

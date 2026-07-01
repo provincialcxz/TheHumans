@@ -178,6 +178,26 @@ bool PeopleService::removeTagFromPerson(int personId, int tagId)
     return m_repo->removeTagFromPerson(personId, tagId);
 }
 
+QVector<PersonRelation> PeopleService::getRelationsForPerson(int personId)
+{
+    return m_repo->getRelationsForPerson(personId);
+}
+
+int PeopleService::addRelation(int personAId, int personBId, const QString &relationType, const QString &note)
+{
+    PersonRelation r;
+    r.personAId = personAId;
+    r.personBId = personBId;
+    r.relationType = relationType;
+    r.note = note;
+    return m_repo->addRelation(r);
+}
+
+bool PeopleService::removeRelation(int id)
+{
+    return m_repo->removeRelation(id);
+}
+
 QVector<PersonDocument> PeopleService::getDocuments(int personId)
 {
     return m_repo->getDocuments(personId);

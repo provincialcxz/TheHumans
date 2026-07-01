@@ -66,6 +66,10 @@ public:
     int addTagToPerson(int personId, const QString &tagName);
     bool removeTagFromPerson(int personId, int tagId);
 
+    QVector<PersonRelation> getRelationsForPerson(int personId);
+    int addRelation(int personAId, int personBId, const QString &relationType, const QString &note = {});
+    bool removeRelation(int id);
+
     QVector<PersonEvent> getEvents(int personId);
     QVector<PersonEvent> getAllEvents();
     int addEvent(const PersonEvent &event);

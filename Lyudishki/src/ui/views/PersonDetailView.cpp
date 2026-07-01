@@ -131,6 +131,7 @@ void PersonDetailView::populateLeftColumn(int personId)
     buildEventsSection(personId);
     buildDocumentsSection(personId);
     buildTagsSection(personId);
+    buildRelationsSection(personId);
 
     if (auto *vbox = qobject_cast<QVBoxLayout *>(ui->bottomLeftWidget->layout()))
         vbox->addStretch(1);
@@ -563,6 +564,104 @@ void PersonDetailView::onShowTimeline()
     layout->addWidget(buttons);
 
     dlg.exec();
+}
+
+// --- Relations ---
+
+void PersonDetailView::buildRelationsSection(int personId)
+{
+    addLeftSectionHeader("Связи:");
+    auto relations = m_peopleService->getRelationsForPerson(personId);
+
+    if (relations.isEmpty()) {
+        auto *lbl = new QLabel("—", ui->bottomLeftWidget);
+        lbl->setStyleSheet("color: #7d8c7d;");
+        ui->bottomLeftWidget->layout()->addWidget(lbl);
+    } else {
+        for (const auto &rel : relations) {
+            int otherId = rel.personAId == personId ? rel.personBId : rel.personAId;
+            Person other = m_peopleService->getPerson(otherId);
+            QString name = (other.lastName + " " + other.firstName).trimmed();
+            if (name.isEmpty()) name = "?";
+
+            auto *row = new QWidget(ui->bottomLeftWidget);
+            auto *rl = new QHBoxLayout(row);
+            rl->setContentsMargins(0, 1, 0, 1);
+            rl->setSpacing(6);
+
+            QString text = name;
+            if (!rel.relationType.isEmpty()) text += " (" + rel.relationType + ")";
+            auto *lbl = new QLabel(QString("<a href=\"#\" style=\"color:#00ff41; text-decoration:none;\">%1</a>")
+                                    .arg(text.toHtmlEscaped()), row);
+            lbl->setTextFormat(Qt::RichText);
+            lbl->setStyleSheet("font-size: 13px;");
+            lbl->setWordWrap(true);
+            connect(lbl, &QLabel::linkActivated, this, [this, otherId](const QString &) {
+                emit personLinkClicked(otherId);
+            });
+            rl->addWidget(lbl, 1);
+
+            auto *delBtn = new QPushButton("×", row);
+            delBtn->setFixedSize(20, 20);
+            delBtn->setStyleSheet("color: #ff3b30; border: 1px solid #ff3b30; font-size: 12px; padding: 0;");
+            int relId = rel.id;
+            connect(delBtn, &QPushButton::clicked, this, [this, relId]() { onRemoveRelation(relId); });
+            rl->addWidget(delBtn);
+
+            ui->bottomLeftWidget->layout()->addWidget(row);
+        }
+    }
+
+    auto *addBtn = new QPushButton("+ связь", ui->bottomLeftWidget);
+    addBtn->setStyleSheet("color: #1b9e4b; border: 1px solid #1f2a1f; padding: 3px 8px; font-size: 12px;");
+    connect(addBtn, &QPushButton::clicked, this, &PersonDetailView::onAddRelation);
+    ui->bottomLeftWidget->layout()->addWidget(addBtn);
+}
+
+void PersonDetailView::onAddRelation()
+{
+    QDialog dlg(this);
+    dlg.setWindowTitle("Связь");
+    auto *layout = new QFormLayout(&dlg);
+
+    auto *personCombo = new QComboBox(&dlg);
+    for (const auto &p : m_peopleService->getAllPeople()) {
+        if (p.id == m_currentPersonId) continue;
+        personCombo->addItem((p.lastName + " " + p.firstName).trimmed(), p.id);
+    }
+    layout->addRow("Человек:", personCombo);
+
+    auto *typeCombo = new QComboBox(&dlg);
+    typeCombo->setEditable(true);
+    typeCombo->addItems({"Родственник", "Друг", "Коллега", "Партнёр", "Знакомый"});
+    typeCombo->setCurrentIndex(-1);
+    layout->addRow("Тип связи:", typeCombo);
+
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dlg);
+    connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+    layout->addRow(buttons);
+
+    if (personCombo->count() == 0) {
+        QMessageBox::information(this, "Связь", "Больше нет других людей в базе, чтобы связать.");
+        return;
+    }
+    if (dlg.exec() != QDialog::Accepted) return;
+    if (personCombo->currentIndex() < 0) return;
+
+    int otherId = personCombo->currentData().toInt();
+    m_peopleService->addRelation(m_currentPersonId, otherId, typeCombo->currentText().trimmed());
+    populateLeftColumn(m_currentPersonId);
+}
+
+void PersonDetailView::onRemoveRelation(int id)
+{
+    auto reply = QMessageBox::question(this, "Удаление", "Удалить связь?",
+                                        QMessageBox::Yes | QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        m_peopleService->removeRelation(id);
+        populateLeftColumn(m_currentPersonId);
+    }
 }
 
 // --- Tags ---

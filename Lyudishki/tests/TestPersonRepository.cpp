@@ -294,6 +294,47 @@ private slots:
         QCOMPARE(map.value(pid2), "Низкая");
     }
 
+    void testRelations()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        SqlitePersonRepository repo(dbm.database());
+
+        Person p1;
+        p1.groupId = 1;
+        p1.firstName = "Rel";
+        p1.lastName = "One";
+        int pid1 = repo.add(p1);
+
+        Person p2;
+        p2.groupId = 1;
+        p2.firstName = "Rel";
+        p2.lastName = "Two";
+        int pid2 = repo.add(p2);
+
+        PersonRelation r;
+        r.personAId = pid1;
+        r.personBId = pid2;
+        r.relationType = "Друг";
+        int rid = repo.addRelation(r);
+        QVERIFY(rid > 0);
+
+        // Undirected: the relation must show up for both sides of the pair.
+        auto relsFor1 = repo.getRelationsForPerson(pid1);
+        QCOMPARE(relsFor1.size(), 1);
+        QCOMPARE(relsFor1[0].relationType, "Друг");
+
+        auto relsFor2 = repo.getRelationsForPerson(pid2);
+        QCOMPARE(relsFor2.size(), 1);
+        QCOMPARE(relsFor2[0].id, rid);
+
+        QVERIFY(repo.removeRelation(rid));
+        QCOMPARE(repo.getRelationsForPerson(pid1).size(), 0);
+        QCOMPARE(repo.getRelationsForPerson(pid2).size(), 0);
+    }
+
     void testRelationshipStatusHistory()
     {
         DatabaseManager dbm(":memory:");

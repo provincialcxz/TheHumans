@@ -14,6 +14,7 @@
 #include "domain/PersonDocument.h"
 #include "domain/Tag.h"
 #include "domain/RelationshipStatusChange.h"
+#include "domain/PersonRelation.h"
 
 class IPersonRepository {
 public:
@@ -87,6 +88,12 @@ public:
     virtual QVector<Tag> getTagsForPerson(int personId) = 0;
     virtual int addTagToPerson(int personId, const QString &tagName) = 0;
     virtual bool removeTagFromPerson(int personId, int tagId) = 0;
+
+    // Relations (person-to-person: family, friend, colleague...). Undirected —
+    // a relation is stored once and returned for either side of the pair.
+    virtual QVector<PersonRelation> getRelationsForPerson(int personId) = 0;
+    virtual int addRelation(const PersonRelation &relation) = 0;
+    virtual bool removeRelation(int id) = 0;
 
     // Events
     virtual QVector<PersonEvent> getEvents(int personId) = 0;

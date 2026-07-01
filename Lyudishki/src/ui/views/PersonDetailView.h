@@ -23,6 +23,7 @@ signals:
     void backRequested();
     void editRequested(int personId);
     void deleteRequested(int personId);
+    void personLinkClicked(int personId);
 
 private:
     Ui::PersonDetailForm *ui;
@@ -51,6 +52,7 @@ private:
     void buildEventsSection(int personId);
     void buildDocumentsSection(int personId);
     void buildTagsSection(int personId);
+    void buildRelationsSection(int personId);
 
     void onAddPhone();
     void onDeletePhone(int id);
@@ -71,6 +73,8 @@ private:
     void onDeleteDocument(int id);
     void onAddTag();
     void onRemoveTag(int tagId);
+    void onAddRelation();
+    void onRemoveRelation(int id);
     void onMarkContacted();
     void onShowTimeline();
 
