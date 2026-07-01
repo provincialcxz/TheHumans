@@ -44,6 +44,7 @@ PersonListView::PersonListView(std::shared_ptr<PeopleService> peopleService,
     connect(ui->addPersonBtn, &QPushButton::clicked, this, [this]() {
         emit addPersonRequested(m_currentGroupId);
     });
+    connect(ui->forgottenOnlyCheck, &QCheckBox::toggled, m_proxy, &PersonSortFilterProxy::setForgottenOnly);
 }
 
 PersonListView::~PersonListView()

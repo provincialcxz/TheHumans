@@ -25,6 +25,12 @@ public:
     // above so typing never has to wait on a DB round-trip to show results.
     void setDeepMatchIds(const QSet<int> &ids);
 
+    // "Forgotten contacts": hide everyone contacted within the last
+    // kForgottenThresholdDays days; people with no lastContactDate at all
+    // count as forgotten too (never logged is at least as stale as "long ago").
+    static constexpr int kForgottenThresholdDays = 90;
+    void setForgottenOnly(bool enabled);
+
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
@@ -34,4 +40,5 @@ private:
     QString m_searchText;
     SortField m_sortField = SortByName;
     QSet<int> m_deepMatchIds;
+    bool m_forgottenOnly = false;
 };

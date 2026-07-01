@@ -1,5 +1,6 @@
 #include "PersonSortFilterProxy.h"
 #include "PersonListModel.h"
+#include <QDate>
 
 PersonSortFilterProxy::PersonSortFilterProxy(QObject *parent)
     : QSortFilterProxyModel(parent)
@@ -30,6 +31,12 @@ void PersonSortFilterProxy::setDeepMatchIds(const QSet<int> &ids)
     invalidateFilter();
 }
 
+void PersonSortFilterProxy::setForgottenOnly(bool enabled)
+{
+    m_forgottenOnly = enabled;
+    invalidateFilter();
+}
+
 bool PersonSortFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
     auto idx = sourceModel()->index(sourceRow, 0, sourceParent);
@@ -37,6 +44,13 @@ bool PersonSortFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &s
     if (m_groupId > 0) {
         int gid = idx.data(PersonListModel::GroupIdRole).toInt();
         if (gid != m_groupId) return false;
+    }
+
+    if (m_forgottenOnly) {
+        QDate lastContact = idx.data(PersonListModel::LastContactDateRole).toDate();
+        bool isForgotten = !lastContact.isValid() ||
+                            lastContact.daysTo(QDate::currentDate()) > kForgottenThresholdDays;
+        if (!isForgotten) return false;
     }
 
     if (!m_searchText.isEmpty()) {

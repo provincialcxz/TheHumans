@@ -46,6 +46,8 @@ QVariant PersonListModel::data(const QModelIndex &index, int role) const
         return m_reliabilityByPersonId.value(p.id);
     case PhoneRole:
         return p.phone;
+    case LastContactDateRole:
+        return p.lastContactDate;
     default:
         return {};
     }

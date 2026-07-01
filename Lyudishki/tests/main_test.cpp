@@ -4,6 +4,7 @@
 extern QObject* createTestGroupRepository();
 extern QObject* createTestPersonRepository();
 extern QObject* createTestServices();
+extern QObject* createTestPersonSortFilterProxy();
 
 int main(int argc, char *argv[])
 {
@@ -18,6 +19,7 @@ int main(int argc, char *argv[])
     runTest(createTestGroupRepository());
     runTest(createTestPersonRepository());
     runTest(createTestServices());
+    runTest(createTestPersonSortFilterProxy());
 
     return status;
 }

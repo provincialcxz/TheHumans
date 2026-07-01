@@ -150,9 +150,12 @@ qt_add_executable(LyudishkiTests
     tests/TestGroupRepository.cpp
     tests/TestPersonRepository.cpp
     tests/TestServices.cpp
+    tests/TestPersonSortFilterProxy.cpp
     ${DOMAIN_SOURCES}
     ${DATA_SOURCES}
     ${SERVICE_SOURCES}
+    src/ui/models/PersonListModel.cpp
+    src/ui/models/PersonSortFilterProxy.cpp
     resources/resources.qrc
 )
 

@@ -19,6 +19,7 @@ public:
         NextBirthdayDaysRole,
         ReliabilityRole,
         PhoneRole,
+        LastContactDateRole,
     };
 
     explicit PersonListModel(QObject *parent = nullptr);

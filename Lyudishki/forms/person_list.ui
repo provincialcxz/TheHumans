@@ -125,6 +125,13 @@
        </property>
       </widget>
      </item>
+     <item row="1" column="0" colspan="4">
+      <widget class="QCheckBox" name="forgottenOnlyCheck">
+       <property name="text">
+        <string>Забытые (90+ дн. без контакта)</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
