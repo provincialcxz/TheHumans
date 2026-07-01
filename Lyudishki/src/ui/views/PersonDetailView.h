@@ -47,6 +47,7 @@ private:
     void buildNotesSection(int personId);
     void buildEventsSection(int personId);
     void buildDocumentsSection(int personId);
+    void buildTagsSection(int personId);
 
     void onAddPhone();
     void onDeletePhone(int id);
@@ -62,4 +63,6 @@ private:
     void onDeleteEvent(int eventId);
     void onAddDocument();
     void onDeleteDocument(int id);
+    void onAddTag();
+    void onRemoveTag(int tagId);
 };

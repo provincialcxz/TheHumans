@@ -127,6 +127,26 @@ bool PeopleService::removeEmail(int id)
     return m_repo->removeEmail(id);
 }
 
+QVector<Tag> PeopleService::getAllTags()
+{
+    return m_repo->getAllTags();
+}
+
+QVector<Tag> PeopleService::getTagsForPerson(int personId)
+{
+    return m_repo->getTagsForPerson(personId);
+}
+
+int PeopleService::addTagToPerson(int personId, const QString &tagName)
+{
+    return m_repo->addTagToPerson(personId, tagName);
+}
+
+bool PeopleService::removeTagFromPerson(int personId, int tagId)
+{
+    return m_repo->removeTagFromPerson(personId, tagId);
+}
+
 QVector<PersonDocument> PeopleService::getDocuments(int personId)
 {
     return m_repo->getDocuments(personId);

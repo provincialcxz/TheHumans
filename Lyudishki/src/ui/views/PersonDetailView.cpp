@@ -112,6 +112,7 @@ void PersonDetailView::populateLeftColumn(int personId)
     buildNotesSection(personId);
     buildEventsSection(personId);
     buildDocumentsSection(personId);
+    buildTagsSection(personId);
 
     if (auto *vbox = qobject_cast<QVBoxLayout *>(ui->bottomLeftWidget->layout()))
         vbox->addStretch(1);
@@ -461,6 +462,78 @@ void PersonDetailView::onDeleteDocument(int id)
         m_peopleService->removeDocument(id);
         populateLeftColumn(m_currentPersonId);
     }
+}
+
+// --- Tags ---
+
+void PersonDetailView::buildTagsSection(int personId)
+{
+    addLeftSectionHeader("Теги:");
+    auto tags = m_peopleService->getTagsForPerson(personId);
+
+    if (tags.isEmpty()) {
+        auto *lbl = new QLabel("—", ui->bottomLeftWidget);
+        lbl->setStyleSheet("color: #7d8c7d;");
+        ui->bottomLeftWidget->layout()->addWidget(lbl);
+    } else {
+        for (const auto &t : tags) {
+            auto *row = new QWidget(ui->bottomLeftWidget);
+            auto *rl = new QHBoxLayout(row);
+            rl->setContentsMargins(0, 1, 0, 1);
+            rl->setSpacing(6);
+
+            auto *lbl = new QLabel(t.name.toHtmlEscaped(), row);
+            lbl->setStyleSheet("font-size: 13px; color: #1b9e4b; border: 1px solid #1f2a1f; "
+                                "border-radius: 8px; padding: 1px 8px;");
+            rl->addWidget(lbl, 1);
+
+            auto *delBtn = new QPushButton("×", row);
+            delBtn->setFixedSize(20, 20);
+            delBtn->setStyleSheet("color: #ff3b30; border: 1px solid #ff3b30; font-size: 12px; padding: 0;");
+            int tId = t.id;
+            connect(delBtn, &QPushButton::clicked, this, [this, tId]() { onRemoveTag(tId); });
+            rl->addWidget(delBtn);
+
+            ui->bottomLeftWidget->layout()->addWidget(row);
+        }
+    }
+
+    auto *addBtn = new QPushButton("+ тег", ui->bottomLeftWidget);
+    addBtn->setStyleSheet("color: #1b9e4b; border: 1px solid #1f2a1f; padding: 3px 8px; font-size: 12px;");
+    connect(addBtn, &QPushButton::clicked, this, &PersonDetailView::onAddTag);
+    ui->bottomLeftWidget->layout()->addWidget(addBtn);
+}
+
+void PersonDetailView::onAddTag()
+{
+    QDialog dlg(this);
+    dlg.setWindowTitle("Тег");
+    auto *layout = new QFormLayout(&dlg);
+
+    auto *nameCombo = new QComboBox(&dlg);
+    nameCombo->setEditable(true);
+    for (const auto &t : m_peopleService->getAllTags())
+        nameCombo->addItem(t.name);
+    nameCombo->setCurrentIndex(-1);
+    layout->addRow("Название:", nameCombo);
+
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dlg);
+    connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+    layout->addRow(buttons);
+
+    if (dlg.exec() != QDialog::Accepted) return;
+    QString name = nameCombo->currentText().trimmed();
+    if (name.isEmpty()) return;
+
+    m_peopleService->addTagToPerson(m_currentPersonId, name);
+    populateLeftColumn(m_currentPersonId);
+}
+
+void PersonDetailView::onRemoveTag(int tagId)
+{
+    m_peopleService->removeTagFromPerson(m_currentPersonId, tagId);
+    populateLeftColumn(m_currentPersonId);
 }
 
 // --- Habits / Hobbies ---

@@ -416,6 +416,83 @@ bool SqlitePersonRepository::removeDocument(int id)
     return true;
 }
 
+// --- Tags ---
+
+QVector<Tag> SqlitePersonRepository::getAllTags()
+{
+    QVector<Tag> result;
+    QSqlQuery q(m_db);
+    if (!q.exec("SELECT id, name FROM tags ORDER BY name"))
+        qWarning("SqlitePersonRepository::getAllTags: %s", qPrintable(q.lastError().text()));
+    while (q.next()) {
+        Tag t;
+        t.id = q.value(0).toInt();
+        t.name = q.value(1).toString();
+        result.append(t);
+    }
+    return result;
+}
+
+QVector<Tag> SqlitePersonRepository::getTagsForPerson(int personId)
+{
+    QVector<Tag> result;
+    QSqlQuery q(m_db);
+    q.prepare("SELECT t.id, t.name FROM tags t "
+              "JOIN person_tags pt ON pt.tag_id = t.id "
+              "WHERE pt.person_id = ? ORDER BY t.name");
+    q.addBindValue(personId);
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::getTagsForPerson: %s", qPrintable(q.lastError().text()));
+    while (q.next()) {
+        Tag t;
+        t.id = q.value(0).toInt();
+        t.name = q.value(1).toString();
+        result.append(t);
+    }
+    return result;
+}
+
+int SqlitePersonRepository::addTagToPerson(int personId, const QString &tagName)
+{
+    QSqlQuery q(m_db);
+    q.prepare("INSERT OR IGNORE INTO tags (name) VALUES (?)");
+    q.addBindValue(tagName);
+    if (!q.exec()) {
+        qWarning("addTagToPerson (insert tag): %s", qPrintable(q.lastError().text()));
+        return -1;
+    }
+
+    q.prepare("SELECT id FROM tags WHERE name = ?");
+    q.addBindValue(tagName);
+    if (!q.exec() || !q.next()) {
+        qWarning("addTagToPerson (lookup tag): %s", qPrintable(q.lastError().text()));
+        return -1;
+    }
+    int tagId = q.value(0).toInt();
+
+    q.prepare("INSERT OR IGNORE INTO person_tags (person_id, tag_id) VALUES (?,?)");
+    q.addBindValue(personId);
+    q.addBindValue(tagId);
+    if (!q.exec()) {
+        qWarning("addTagToPerson (link): %s", qPrintable(q.lastError().text()));
+        return -1;
+    }
+    return tagId;
+}
+
+bool SqlitePersonRepository::removeTagFromPerson(int personId, int tagId)
+{
+    QSqlQuery q(m_db);
+    q.prepare("DELETE FROM person_tags WHERE person_id = ? AND tag_id = ?");
+    q.addBindValue(personId);
+    q.addBindValue(tagId);
+    if (!q.exec()) {
+        qWarning("SqlitePersonRepository::removeTagFromPerson: %s", qPrintable(q.lastError().text()));
+        return false;
+    }
+    return true;
+}
+
 // --- Phone Numbers ---
 
 QVector<PhoneNumber> SqlitePersonRepository::getPhoneNumbers(int personId)

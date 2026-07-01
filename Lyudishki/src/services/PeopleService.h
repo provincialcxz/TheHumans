@@ -50,6 +50,11 @@ public:
     int addDocument(const PersonDocument &document);
     bool removeDocument(int id);
 
+    QVector<Tag> getAllTags();
+    QVector<Tag> getTagsForPerson(int personId);
+    int addTagToPerson(int personId, const QString &tagName);
+    bool removeTagFromPerson(int personId, int tagId);
+
     QVector<PersonEvent> getEvents(int personId);
     QVector<PersonEvent> getAllEvents();
     int addEvent(const PersonEvent &event);

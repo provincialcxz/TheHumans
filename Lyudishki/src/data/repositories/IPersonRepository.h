@@ -11,6 +11,7 @@
 #include "domain/PersonNote.h"
 #include "domain/PersonFile.h"
 #include "domain/PersonDocument.h"
+#include "domain/Tag.h"
 
 class IPersonRepository {
 public:
@@ -66,6 +67,13 @@ public:
     virtual QVector<PersonDocument> getDocuments(int personId) = 0;
     virtual int addDocument(const PersonDocument &document) = 0;
     virtual bool removeDocument(int id) = 0;
+
+    // Tags (independent of groups: a person can have any number of tags,
+    // shared by name across people)
+    virtual QVector<Tag> getAllTags() = 0;
+    virtual QVector<Tag> getTagsForPerson(int personId) = 0;
+    virtual int addTagToPerson(int personId, const QString &tagName) = 0;
+    virtual bool removeTagFromPerson(int personId, int tagId) = 0;
 
     // Events
     virtual QVector<PersonEvent> getEvents(int personId) = 0;

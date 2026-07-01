@@ -10,7 +10,7 @@ MigrationManager::MigrationManager(QSqlDatabase &db)
 bool MigrationManager::migrate()
 {
     int ver = currentVersion();
-    const int targetVersion = 5;
+    const int targetVersion = 6;
     while (ver < targetVersion) {
         int next = ver + 1;
         qInfo("MigrationManager: running migration v%d", next);
@@ -47,6 +47,7 @@ bool MigrationManager::runMigration(int version)
     case 3: return migration_v3();
     case 4: return migration_v4();
     case 5: return migration_v5();
+    case 6: return migration_v6();
     default: return false;
     }
 }
@@ -359,6 +360,35 @@ bool MigrationManager::migration_v5()
     for (const auto &sql : statements) {
         if (!q.exec(sql)) {
             qWarning("Migration v5 failed: %s\nSQL: %s",
+                     qPrintable(q.lastError().text()), qPrintable(sql));
+            m_db.rollback();
+            return false;
+        }
+    }
+    m_db.commit();
+    return true;
+}
+
+bool MigrationManager::migration_v6()
+{
+    QSqlQuery q(m_db);
+    QStringList statements = {
+        "CREATE TABLE IF NOT EXISTS tags ("
+        "  id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "  name TEXT NOT NULL UNIQUE"
+        ")",
+
+        "CREATE TABLE IF NOT EXISTS person_tags ("
+        "  person_id INTEGER NOT NULL REFERENCES person(id) ON DELETE CASCADE,"
+        "  tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,"
+        "  PRIMARY KEY (person_id, tag_id)"
+        ")",
+    };
+
+    m_db.transaction();
+    for (const auto &sql : statements) {
+        if (!q.exec(sql)) {
+            qWarning("Migration v6 failed: %s\nSQL: %s",
                      qPrintable(q.lastError().text()), qPrintable(sql));
             m_db.rollback();
             return false;

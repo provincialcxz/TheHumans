@@ -44,6 +44,11 @@ public:
     int addDocument(const PersonDocument &document) override;
     bool removeDocument(int id) override;
 
+    QVector<Tag> getAllTags() override;
+    QVector<Tag> getTagsForPerson(int personId) override;
+    int addTagToPerson(int personId, const QString &tagName) override;
+    bool removeTagFromPerson(int personId, int tagId) override;
+
     QVector<PersonEvent> getEvents(int personId) override;
     QVector<PersonEvent> getAllEvents() override;
     int addEvent(const PersonEvent &event) override;
