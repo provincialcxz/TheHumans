@@ -18,6 +18,8 @@
 #include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QUrl>
+#include <QListWidget>
+#include <algorithm>
 
 PersonDetailView::PersonDetailView(std::shared_ptr<PeopleService> peopleService, QWidget *parent)
     : QWidget(parent)
@@ -35,6 +37,7 @@ PersonDetailView::PersonDetailView(std::shared_ptr<PeopleService> peopleService,
         emit deleteRequested(m_currentPersonId);
     });
     connect(ui->markContactedButton, &QPushButton::clicked, this, &PersonDetailView::onMarkContacted);
+    connect(ui->timelineButton, &QPushButton::clicked, this, &PersonDetailView::onShowTimeline);
 }
 
 PersonDetailView::~PersonDetailView()
@@ -483,6 +486,83 @@ void PersonDetailView::onMarkContacted()
 {
     m_peopleService->markContactedNow(m_currentPersonId);
     showPerson(m_currentPersonId);
+}
+
+// --- Timeline ---
+//
+// Not a stored entity — just a chronological merge of everything else in
+// this file that already carries a timestamp (notes, files, photos, status
+// changes, events, last contact). Tags/documents have no timestamp column
+// yet, so they're left out rather than shown with a fabricated date.
+
+QVector<PersonDetailView::TimelineEntry> PersonDetailView::buildTimeline(int personId)
+{
+    QVector<TimelineEntry> entries;
+
+    Person p = m_peopleService->getPerson(personId);
+    if (p.createdAt.isValid())
+        entries.append({p.createdAt, "Добавлен(а) в базу"});
+    if (p.lastContactDate.isValid())
+        entries.append({QDateTime(p.lastContactDate, QTime(0, 0)), "Последний известный контакт"});
+
+    for (const auto &n : m_peopleService->getNotes(personId)) {
+        QString text = n.text;
+        if (text.size() > 80) text = text.left(80) + "…";
+        entries.append({n.createdAt, "Заметка: " + text});
+    }
+
+    for (const auto &f : m_peopleService->getFiles(personId))
+        entries.append({f.addedAt, "Добавлен файл: " + f.fileName});
+
+    for (const auto &ph : m_peopleService->getPhotos(personId))
+        entries.append({ph.addedAt, "Добавлено фото в галерею"});
+
+    for (const auto &c : m_peopleService->getRelationshipStatusHistory(personId)) {
+        QString from = c.oldValue.isEmpty() ? "—" : c.oldValue;
+        QString to = c.newValue.isEmpty() ? "—" : c.newValue;
+        entries.append({c.changedAt, "Статус отношений: " + from + " → " + to});
+    }
+
+    for (const auto &ev : m_peopleService->getEvents(personId)) {
+        if (ev.date.isValid())
+            entries.append({QDateTime(ev.date, QTime(0, 0)), "Событие: " + ev.title});
+    }
+
+    std::sort(entries.begin(), entries.end(), [](const TimelineEntry &a, const TimelineEntry &b) {
+        return a.date > b.date; // most recent first
+    });
+    return entries;
+}
+
+void PersonDetailView::onShowTimeline()
+{
+    auto entries = buildTimeline(m_currentPersonId);
+
+    QDialog dlg(this);
+    dlg.setWindowTitle("Хронология");
+    dlg.resize(420, 480);
+    auto *layout = new QVBoxLayout(&dlg);
+
+    auto *list = new QListWidget(&dlg);
+    if (entries.isEmpty()) {
+        list->addItem("—");
+    } else {
+        for (const auto &e : entries) {
+            QString dateStr = e.date.time() == QTime(0, 0)
+                                   ? e.date.date().toString("dd.MM.yyyy")
+                                   : e.date.toString("dd.MM.yyyy HH:mm");
+            list->addItem(dateStr + "  —  " + e.text);
+        }
+    }
+    layout->addWidget(list);
+
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dlg);
+    connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+    connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::clicked, &dlg, &QDialog::accept);
+    layout->addWidget(buttons);
+
+    dlg.exec();
 }
 
 // --- Tags ---

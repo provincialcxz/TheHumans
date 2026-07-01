@@ -38,6 +38,13 @@
        </spacer>
       </item>
       <item>
+       <widget class="QPushButton" name="timelineButton">
+        <property name="text">
+         <string>хронология</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="editButton">
         <property name="text">
          <string>edit</string>

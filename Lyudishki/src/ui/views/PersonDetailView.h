@@ -2,6 +2,8 @@
 
 #include <QWidget>
 #include <QVBoxLayout>
+#include <QDateTime>
+#include <QVector>
 #include "services/PeopleService.h"
 #include <memory>
 
@@ -70,4 +72,11 @@ private:
     void onAddTag();
     void onRemoveTag(int tagId);
     void onMarkContacted();
+    void onShowTimeline();
+
+    struct TimelineEntry {
+        QDateTime date;
+        QString text;
+    };
+    QVector<TimelineEntry> buildTimeline(int personId);
 };
