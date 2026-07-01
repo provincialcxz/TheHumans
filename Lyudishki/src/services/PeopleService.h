@@ -62,6 +62,7 @@ public:
     bool removeDocument(int id);
 
     QVector<Tag> getAllTags();
+    QVector<QPair<QString, int>> getTagUsageCounts();
     QVector<Tag> getTagsForPerson(int personId);
     int addTagToPerson(int personId, const QString &tagName);
     bool removeTagFromPerson(int personId, int tagId);

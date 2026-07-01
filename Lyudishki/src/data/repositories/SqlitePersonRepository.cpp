@@ -545,6 +545,19 @@ QVector<Tag> SqlitePersonRepository::getAllTags()
     return result;
 }
 
+QVector<QPair<QString, int>> SqlitePersonRepository::getTagUsageCounts()
+{
+    QVector<QPair<QString, int>> result;
+    QSqlQuery q(m_db);
+    if (!q.exec("SELECT t.name, COUNT(*) FROM tags t "
+                "JOIN person_tags pt ON pt.tag_id = t.id "
+                "GROUP BY t.id ORDER BY COUNT(*) DESC, t.name"))
+        qWarning("SqlitePersonRepository::getTagUsageCounts: %s", qPrintable(q.lastError().text()));
+    while (q.next())
+        result.append({q.value(0).toString(), q.value(1).toInt()});
+    return result;
+}
+
 QVector<Tag> SqlitePersonRepository::getTagsForPerson(int personId)
 {
     QVector<Tag> result;

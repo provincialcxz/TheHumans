@@ -500,6 +500,32 @@ private slots:
         QCOMPARE(repo.getTagsForPerson(pid2).size(), 1);
     }
 
+    void testTagUsageCounts()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        SqlitePersonRepository repo(dbm.database());
+
+        Person p1; p1.groupId = 1; p1.firstName = "A"; p1.lastName = "One";
+        int pid1 = repo.add(p1);
+        Person p2; p2.groupId = 1; p2.firstName = "B"; p2.lastName = "Two";
+        int pid2 = repo.add(p2);
+
+        repo.addTagToPerson(pid1, "важное");
+        repo.addTagToPerson(pid2, "важное");
+        repo.addTagToPerson(pid1, "редко");
+
+        auto counts = repo.getTagUsageCounts();
+        QCOMPARE(counts.size(), 2);
+        // Most-used tag first.
+        QCOMPARE(counts[0].first, "важное");
+        QCOMPARE(counts[0].second, 2);
+        QCOMPARE(counts[1].first, "редко");
+        QCOMPARE(counts[1].second, 1);
+    }
+
     void testMetInPersonAndLastContact()
     {
         DatabaseManager dbm(":memory:");

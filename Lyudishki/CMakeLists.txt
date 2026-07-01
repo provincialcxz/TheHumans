@@ -80,6 +80,8 @@ set(UI_SOURCES
     src/ui/widgets/PersonGraphNode.cpp
     src/ui/dialogs/PersonGraphDialog.h
     src/ui/dialogs/PersonGraphDialog.cpp
+    src/ui/dialogs/PersonStatsDialog.h
+    src/ui/dialogs/PersonStatsDialog.cpp
 )
 
 set(FORM_FILES

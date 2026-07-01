@@ -2,6 +2,7 @@
 
 #include <QVector>
 #include <QMap>
+#include <QPair>
 #include "domain/Person.h"
 #include "domain/PersonProfile.h"
 #include "domain/SocialAccount.h"
@@ -85,6 +86,9 @@ public:
     // Tags (independent of groups: a person can have any number of tags,
     // shared by name across people)
     virtual QVector<Tag> getAllTags() = 0;
+    // (tag name, number of people carrying it), most-used first — for the
+    // stats dashboard, computed in SQL so it doesn't cost one query per tag.
+    virtual QVector<QPair<QString, int>> getTagUsageCounts() = 0;
     virtual QVector<Tag> getTagsForPerson(int personId) = 0;
     virtual int addTagToPerson(int personId, const QString &tagName) = 0;
     virtual bool removeTagFromPerson(int personId, int tagId) = 0;

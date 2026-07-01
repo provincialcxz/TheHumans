@@ -163,6 +163,11 @@ QVector<Tag> PeopleService::getAllTags()
     return m_repo->getAllTags();
 }
 
+QVector<QPair<QString, int>> PeopleService::getTagUsageCounts()
+{
+    return m_repo->getTagUsageCounts();
+}
+
 QVector<Tag> PeopleService::getTagsForPerson(int personId)
 {
     return m_repo->getTagsForPerson(personId);

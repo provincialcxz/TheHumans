@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include "ui_main_window.h"
 #include "ui/dialogs/PersonGraphDialog.h"
+#include "ui/dialogs/PersonStatsDialog.h"
 #include <QMouseEvent>
 #include <QCloseEvent>
 #include <QMessageBox>
@@ -144,6 +145,9 @@ void MainWindow::setupMenuBar()
     auto *viewMenu = menuBar->addMenu("Вид");
     auto *graphAction = viewMenu->addAction("Граф связей...");
     connect(graphAction, &QAction::triggered, this, &MainWindow::onShowRelationGraph);
+
+    auto *statsAction = viewMenu->addAction("Статистика...");
+    connect(statsAction, &QAction::triggered, this, &MainWindow::onShowStats);
 }
 
 void MainWindow::setupTrayIcon()
@@ -481,6 +485,12 @@ void MainWindow::onShowRelationGraph()
 {
     PersonGraphDialog dlg(m_ctx.peopleService(), this);
     connect(&dlg, &PersonGraphDialog::personSelected, this, &MainWindow::onPersonSelected);
+    dlg.exec();
+}
+
+void MainWindow::onShowStats()
+{
+    PersonStatsDialog dlg(m_ctx.peopleService(), m_ctx.groupService(), this);
     dlg.exec();
 }
 

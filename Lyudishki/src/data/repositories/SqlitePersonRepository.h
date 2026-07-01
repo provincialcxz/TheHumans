@@ -51,6 +51,7 @@ public:
     bool removeDocument(int id) override;
 
     QVector<Tag> getAllTags() override;
+    QVector<QPair<QString, int>> getTagUsageCounts() override;
     QVector<Tag> getTagsForPerson(int personId) override;
     int addTagToPerson(int personId, const QString &tagName) override;
     bool removeTagFromPerson(int personId, int tagId) override;
