@@ -112,6 +112,39 @@ private slots:
         QCOMPARE(svc.getPerson(id).photoPath, "/tmp/some_photo.jpg");
     }
 
+    // Regression test: switching avatars from the gallery used to silently
+    // discard whatever photo was set before (it was overwritten with no
+    // trace). setAsAvatar must swap instead: the outgoing avatar goes into
+    // the gallery, and the incoming one is removed from it.
+    void testSetAsAvatarPreservesPreviousAvatar()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        auto repo = std::make_shared<SqlitePersonRepository>(dbm.database());
+        PeopleService svc(repo);
+
+        Person p;
+        p.groupId = 1;
+        p.firstName = "Swap";
+        p.lastName = "Test";
+        p.photoPath = "/tmp/old_avatar.jpg";
+        int id = svc.addPerson(p);
+
+        PersonPhoto ph;
+        ph.personId = id;
+        ph.filePath = "/tmp/gallery_photo.jpg";
+        int phId = repo->addPhoto(ph);
+
+        QVERIFY(svc.setAsAvatar(id, phId));
+        QCOMPARE(svc.getPerson(id).photoPath, "/tmp/gallery_photo.jpg");
+
+        auto gallery = svc.getPhotos(id);
+        QCOMPARE(gallery.size(), 1);
+        QCOMPARE(gallery[0].filePath, "/tmp/old_avatar.jpg");
+    }
+
     void testSearchService()
     {
         DatabaseManager dbm(":memory:");

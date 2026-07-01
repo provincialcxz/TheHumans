@@ -46,6 +46,24 @@ QString PeopleService::importPhoto(int personId, const QString &sourceFilePath)
         QDir().mkpath(photoDir);
         QString ext = info.suffix();
         destPath = photoDir + "/photo" + (ext.isEmpty() ? "" : "." + ext);
+
+        // Preserve the outgoing avatar in the gallery instead of deleting it —
+        // otherwise picking a new avatar here silently destroys whichever
+        // photo was set before, with no way to get it back.
+        Person current = m_repo->getById(personId);
+        if (!current.photoPath.isEmpty() && QFile::exists(current.photoPath)) {
+            QString galleryDir = photoDir + "/gallery";
+            QDir().mkpath(galleryDir);
+            QString ts = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmsszzz");
+            QString oldExt = QFileInfo(current.photoPath).suffix();
+            QString preservedPath = galleryDir + "/" + ts + (oldExt.isEmpty() ? "" : "." + oldExt);
+            if (QFile::rename(current.photoPath, preservedPath)) {
+                PersonPhoto old;
+                old.personId = personId;
+                old.filePath = preservedPath;
+                m_repo->addPhoto(old);
+            }
+        }
         if (QFile::exists(destPath))
             QFile::remove(destPath);
 
@@ -280,8 +298,24 @@ bool PeopleService::setAsAvatar(int personId, int photoId)
 
     Person p = m_repo->getById(personId);
     if (p.id == 0) return false;
+
+    QString oldAvatarPath = p.photoPath;
     p.photoPath = photo.filePath;
-    return m_repo->update(p);
+    if (!m_repo->update(p)) return false;
+
+    // The chosen photo is now the avatar — drop its gallery row so it isn't
+    // shown twice (once as the avatar, once in the gallery list below it).
+    m_repo->removePhoto(photoId);
+
+    // Preserve the outgoing avatar in the gallery instead of losing it —
+    // without this, switching avatars silently discards the previous photo.
+    if (!oldAvatarPath.isEmpty() && oldAvatarPath != photo.filePath) {
+        PersonPhoto old;
+        old.personId = personId;
+        old.filePath = oldAvatarPath;
+        m_repo->addPhoto(old);
+    }
+    return true;
 }
 
 QVector<PersonEvent> PeopleService::getEvents(int personId)
