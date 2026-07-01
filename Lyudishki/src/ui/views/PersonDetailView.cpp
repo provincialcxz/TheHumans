@@ -34,6 +34,7 @@ PersonDetailView::PersonDetailView(std::shared_ptr<PeopleService> peopleService,
     connect(ui->deleteButton, &QPushButton::clicked, this, [this]() {
         emit deleteRequested(m_currentPersonId);
     });
+    connect(ui->markContactedButton, &QPushButton::clicked, this, &PersonDetailView::onMarkContacted);
 }
 
 PersonDetailView::~PersonDetailView()
@@ -52,6 +53,18 @@ void PersonDetailView::showPerson(int personId)
     ui->valContact->setText(p.primaryContactMethod.isEmpty() ? "—" : p.primaryContactMethod);
     ui->valAddress->setText(p.address.isEmpty() ? "—" : p.address);
     ui->valMetInPerson->setText(p.metInPerson ? "Да" : "Нет");
+
+    // Highlight when contact is stale (>60 days) so it stands out at a glance
+    // without needing a separate "forgotten contacts" view yet.
+    if (p.lastContactDate.isValid()) {
+        qint64 daysSince = p.lastContactDate.daysTo(QDate::currentDate());
+        ui->valLastContact->setText(p.lastContactDate.toString("dd.MM.yyyy") +
+                                     QString(" (%1 дн. назад)").arg(daysSince));
+        ui->valLastContact->setStyleSheet(daysSince > 60 ? "color: #ff9500;" : "");
+    } else {
+        ui->valLastContact->setText("—");
+        ui->valLastContact->setStyleSheet("");
+    }
 
     // Photo
     if (!p.photoPath.isEmpty() && QFile::exists(p.photoPath)) {
@@ -463,6 +476,12 @@ void PersonDetailView::onDeleteDocument(int id)
         m_peopleService->removeDocument(id);
         populateLeftColumn(m_currentPersonId);
     }
+}
+
+void PersonDetailView::onMarkContacted()
+{
+    m_peopleService->markContactedNow(m_currentPersonId);
+    showPerson(m_currentPersonId);
 }
 
 // --- Tags ---

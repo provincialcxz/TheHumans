@@ -82,6 +82,14 @@ bool PeopleService::removePerson(int id)
     return m_repo->remove(id);
 }
 
+bool PeopleService::markContactedNow(int personId)
+{
+    Person p = m_repo->getById(personId);
+    if (p.id == 0) return false;
+    p.lastContactDate = QDate::currentDate();
+    return m_repo->update(p);
+}
+
 PersonProfile PeopleService::loadProfile(int personId)
 {
     return m_repo->loadProfile(personId);

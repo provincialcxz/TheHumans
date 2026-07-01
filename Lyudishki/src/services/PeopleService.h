@@ -17,6 +17,9 @@ public:
     bool updatePerson(const Person &person);
     bool removePerson(int id);
 
+    // Updates lastContactDate to today, for the "mark as contacted" quick action.
+    bool markContactedNow(int personId);
+
     // Copies an externally-chosen photo into managed app storage so it
     // survives the user moving/deleting the original file. Returns the
     // new managed path (or the original path if no attachments dir is set).

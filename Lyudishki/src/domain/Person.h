@@ -19,5 +19,6 @@ struct Person {
     QString hobbies;
     QString note;
     bool metInPerson = false;
+    QDate lastContactDate;
     QDateTime createdAt;
 };

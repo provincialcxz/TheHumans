@@ -25,6 +25,7 @@ Person SqlitePersonRepository::personFromQuery(QSqlQuery &q)
     p.hobbies = q.value("hobbies").toString();
     p.note = q.value("note").toString();
     p.metInPerson = q.value("met_in_person").toInt() != 0;
+    p.lastContactDate = QDate::fromString(q.value("last_contact_date").toString(), Qt::ISODate);
     p.createdAt = QDateTime::fromString(q.value("created_at").toString(), Qt::ISODate);
     return p;
 }
@@ -69,8 +70,8 @@ int SqlitePersonRepository::add(const Person &person)
 {
     QSqlQuery q(m_db);
     q.prepare("INSERT INTO person (group_id, photo_path, last_name, first_name, patronymic, "
-              "birth_date, phone, primary_contact_method, address, habits, hobbies, note, met_in_person) "
-              "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+              "birth_date, phone, primary_contact_method, address, habits, hobbies, note, met_in_person, last_contact_date) "
+              "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     q.addBindValue(person.groupId);
     q.addBindValue(person.photoPath);
     q.addBindValue(person.lastName);
@@ -84,6 +85,7 @@ int SqlitePersonRepository::add(const Person &person)
     q.addBindValue(person.hobbies);
     q.addBindValue(person.note);
     q.addBindValue(person.metInPerson ? 1 : 0);
+    q.addBindValue(person.lastContactDate.isValid() ? person.lastContactDate.toString(Qt::ISODate) : QVariant());
     if (!q.exec()) {
         qWarning("SqlitePersonRepository::add: %s", qPrintable(q.lastError().text()));
         return -1;
@@ -103,7 +105,7 @@ bool SqlitePersonRepository::update(const Person &person)
     QSqlQuery q(m_db);
     q.prepare("UPDATE person SET group_id=?, photo_path=?, last_name=?, first_name=?, "
               "patronymic=?, birth_date=?, phone=?, primary_contact_method=?, "
-              "address=?, habits=?, hobbies=?, note=?, met_in_person=? WHERE id=?");
+              "address=?, habits=?, hobbies=?, note=?, met_in_person=?, last_contact_date=? WHERE id=?");
     q.addBindValue(person.groupId);
     q.addBindValue(person.photoPath);
     q.addBindValue(person.lastName);
@@ -117,6 +119,7 @@ bool SqlitePersonRepository::update(const Person &person)
     q.addBindValue(person.hobbies);
     q.addBindValue(person.note);
     q.addBindValue(person.metInPerson ? 1 : 0);
+    q.addBindValue(person.lastContactDate.isValid() ? person.lastContactDate.toString(Qt::ISODate) : QVariant());
     q.addBindValue(person.id);
     if (!q.exec()) {
         qWarning("SqlitePersonRepository::update: %s", qPrintable(q.lastError().text()));

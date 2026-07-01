@@ -37,6 +37,7 @@ bool DataService::exportPeopleJson(const QString &filePath)
         obj["hobbies"] = p.hobbies;
         obj["note"] = p.note;
         obj["metInPerson"] = p.metInPerson;
+        obj["lastContactDate"] = p.lastContactDate.isValid() ? p.lastContactDate.toString(Qt::ISODate) : "";
         obj["photoPath"] = p.photoPath;
 
         // Social accounts
@@ -198,6 +199,7 @@ int DataService::importPeopleJson(const QString &filePath, int *skippedCount)
         p.hobbies = obj["hobbies"].toString();
         p.note = obj["note"].toString();
         p.metInPerson = obj["metInPerson"].toBool();
+        p.lastContactDate = QDate::fromString(obj["lastContactDate"].toString(), Qt::ISODate);
         p.photoPath = obj["photoPath"].toString();
 
         int pid = m_personRepo->add(p);

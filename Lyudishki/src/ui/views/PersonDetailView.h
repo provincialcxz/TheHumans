@@ -65,4 +65,5 @@ private:
     void onDeleteDocument(int id);
     void onAddTag();
     void onRemoveTag(int tagId);
+    void onMarkContacted();
 };
