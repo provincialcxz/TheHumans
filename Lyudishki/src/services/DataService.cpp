@@ -7,6 +7,131 @@
 #include <QDateTime>
 #include <QSet>
 
+namespace {
+
+struct ParsedVCardPerson {
+    QString lastName, firstName, patronymic;
+    QDate birthDate;
+    QVector<QPair<QString, QString>> phones; // (number, label)
+    QVector<QPair<QString, QString>> emails; // (address, label)
+};
+
+QString unescapeVCardValue(QString value)
+{
+    value.replace("\\n", "\n").replace("\\N", "\n")
+         .replace("\\,", ",").replace("\\;", ";").replace("\\\\", "\\");
+    return value;
+}
+
+// Splits "NAME;PARAM=VAL:VALUE" into the property name (uppercased),
+// its raw parameter string, and the (unescaped) value.
+bool parseVCardLine(const QString &line, QString &name, QString &params, QString &value)
+{
+    int colon = line.indexOf(':');
+    if (colon < 0) return false;
+    QString left = line.left(colon);
+    value = unescapeVCardValue(line.mid(colon + 1));
+    int semi = left.indexOf(';');
+    if (semi < 0) {
+        name = left.toUpper();
+        params = QString();
+    } else {
+        name = left.left(semi).toUpper();
+        params = left.mid(semi + 1).toUpper();
+    }
+    return true;
+}
+
+QDate parseVCardDate(const QString &raw)
+{
+    QString v = raw;
+    v.remove('-');
+    if (v.size() >= 8)
+        return QDate::fromString(v.left(8), "yyyyMMdd");
+    return QDate();
+}
+
+QString labelFromParams(const QString &params)
+{
+    if (params.contains("CELL")) return "мобильный";
+    if (params.contains("HOME")) return "домашний";
+    if (params.contains("WORK")) return "рабочий";
+    return QString();
+}
+
+QVector<ParsedVCardPerson> parseVCardFile(const QString &content)
+{
+    QVector<ParsedVCardPerson> result;
+
+    // Unfold RFC 6350 continuation lines (a line starting with a space or
+    // tab is a wrap of the previous one) before splitting into logical lines.
+    QString normalized = content;
+    normalized.replace("\r\n", "\n").replace('\r', '\n');
+    QStringList rawLines = normalized.split('\n');
+    QStringList lines;
+    for (const QString &line : rawLines) {
+        if (!line.isEmpty() && (line[0] == ' ' || line[0] == '\t') && !lines.isEmpty())
+            lines.last() += line.mid(1);
+        else
+            lines.append(line);
+    }
+
+    bool inCard = false;
+    ParsedVCardPerson current;
+    QString fullName;
+
+    for (const QString &rawLine : lines) {
+        QString line = rawLine.trimmed();
+        if (line.isEmpty()) continue;
+
+        if (line.compare("BEGIN:VCARD", Qt::CaseInsensitive) == 0) {
+            inCard = true;
+            current = ParsedVCardPerson();
+            fullName.clear();
+            continue;
+        }
+        if (line.compare("END:VCARD", Qt::CaseInsensitive) == 0) {
+            if (inCard) {
+                if (current.lastName.isEmpty() && current.firstName.isEmpty() && !fullName.isEmpty()) {
+                    // FN has no formal word order, but real-world exporters
+                    // (Google/Apple contacts) write it as "GivenName FamilyName" —
+                    // the opposite order from N's family-first fields.
+                    QStringList parts = fullName.split(' ', Qt::SkipEmptyParts);
+                    if (parts.size() >= 1) current.firstName = parts[0];
+                    if (parts.size() >= 2) current.lastName = parts[1];
+                    if (parts.size() >= 3) current.patronymic = parts.mid(2).join(' ');
+                }
+                if (!current.lastName.isEmpty() || !current.firstName.isEmpty())
+                    result.append(current);
+            }
+            inCard = false;
+            continue;
+        }
+        if (!inCard) continue;
+
+        QString name, params, value;
+        if (!parseVCardLine(line, name, params, value)) continue;
+
+        if (name == "N") {
+            QStringList comps = value.split(';');
+            if (comps.size() > 0) current.lastName = comps[0];
+            if (comps.size() > 1) current.firstName = comps[1];
+            if (comps.size() > 2 && !comps[2].isEmpty()) current.patronymic = comps[2];
+        } else if (name == "FN") {
+            fullName = value;
+        } else if (name == "TEL") {
+            current.phones.append({value, labelFromParams(params)});
+        } else if (name == "EMAIL") {
+            current.emails.append({value, labelFromParams(params)});
+        } else if (name == "BDAY") {
+            current.birthDate = parseVCardDate(value);
+        }
+    }
+    return result;
+}
+
+} // namespace
+
 DataService::DataService(std::shared_ptr<IPersonRepository> personRepo,
                          std::shared_ptr<IGroupRepository> groupRepo)
     : m_personRepo(std::move(personRepo))
@@ -291,6 +416,74 @@ int DataService::importPeopleJson(const QString &filePath, int *skippedCount)
             prof.clothingSize = po["clothingSize"].toString();
             prof.favoriteFood = po["favoriteFood"].toString();
             m_personRepo->saveProfile(prof);
+        }
+
+        existingIdentities.insert(identity); // guard against dupes within this same file
+        imported++;
+    }
+    return imported;
+}
+
+int DataService::importPeopleVCard(const QString &filePath, int *skippedCount)
+{
+    if (skippedCount) *skippedCount = 0;
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return -1;
+    QString content = QString::fromUtf8(file.readAll());
+    file.close();
+
+    auto entries = parseVCardFile(content);
+
+    // vCards carry no group info — fall back to the first known group,
+    // same as importPeopleJson does when a JSON entry's group is missing.
+    auto groups = m_groupRepo->getAll();
+    int fallbackGroupId = groups.isEmpty() ? 0 : groups.first().id;
+
+    QSet<QString> existingIdentities;
+    for (const auto &existing : m_personRepo->getAll()) {
+        existingIdentities.insert(existing.lastName + "\x1f" + existing.firstName + "\x1f" +
+                                   existing.birthDate.toString(Qt::ISODate));
+    }
+
+    int imported = 0;
+    for (const auto &entry : entries) {
+        QString identity = entry.lastName + "\x1f" + entry.firstName + "\x1f" +
+                            entry.birthDate.toString(Qt::ISODate);
+        if (existingIdentities.contains(identity)) {
+            if (skippedCount) (*skippedCount)++;
+            continue;
+        }
+
+        Person p;
+        p.groupId = fallbackGroupId;
+        p.lastName = entry.lastName;
+        p.firstName = entry.firstName;
+        p.patronymic = entry.patronymic;
+        p.birthDate = entry.birthDate;
+        if (!entry.phones.isEmpty())
+            p.phone = entry.phones.first().first;
+
+        int pid = m_personRepo->add(p);
+        if (pid < 0) continue;
+
+        // Any phone beyond the first is stored as an additional number —
+        // Person::phone already holds the primary one.
+        for (int i = 1; i < entry.phones.size(); ++i) {
+            PhoneNumber ph;
+            ph.personId = pid;
+            ph.number = entry.phones[i].first;
+            ph.label = entry.phones[i].second;
+            m_personRepo->addPhoneNumber(ph);
+        }
+
+        for (const auto &em : entry.emails) {
+            Email e;
+            e.personId = pid;
+            e.address = em.first;
+            e.label = em.second;
+            m_personRepo->addEmail(e);
         }
 
         existingIdentities.insert(identity); // guard against dupes within this same file

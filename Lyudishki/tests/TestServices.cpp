@@ -365,6 +365,76 @@ private slots:
         QCOMPARE(imported, 0); // both already exist now
         QCOMPARE(skipped, 2);
     }
+
+    void testImportVCard()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        auto personRepo = std::make_shared<SqlitePersonRepository>(dbm.database());
+        auto groupRepo = std::make_shared<SqliteGroupRepository>(dbm.database());
+        DataService dataSvc(personRepo, groupRepo);
+
+        QTemporaryDir dir;
+        QString vcfPath = dir.path() + "/contacts.vcf";
+        QFile vcf(vcfPath);
+        QVERIFY(vcf.open(QIODevice::WriteOnly | QIODevice::Text));
+        vcf.write(QByteArray(
+            "BEGIN:VCARD\r\n"
+            "VERSION:3.0\r\n"
+            "N:Петров;Иван;Сергеевич;;\r\n"
+            "FN:Иван Петров\r\n"
+            "TEL;TYPE=CELL:+79001234567\r\n"
+            "TEL;TYPE=HOME:+74951234567\r\n"
+            "EMAIL;TYPE=WORK:ivan@example.com\r\n"
+            "BDAY:1990-05-15\r\n"
+            "END:VCARD\r\n"
+            "BEGIN:VCARD\r\n"
+            "VERSION:3.0\r\n"
+            "FN:Анна Смирнова\r\n"
+            "TEL:+79997654321\r\n"
+            "END:VCARD\r\n"
+        ));
+        vcf.close();
+
+        int skipped = 0;
+        int imported = dataSvc.importPeopleVCard(vcfPath, &skipped);
+        QCOMPARE(imported, 2);
+        QCOMPARE(skipped, 0);
+
+        auto people = personRepo->getAll();
+        QCOMPARE(people.size(), 2);
+
+        Person ivan;
+        for (const auto &p : people)
+            if (p.lastName == "Петров") ivan = p;
+        QCOMPARE(ivan.firstName, "Иван");
+        QCOMPARE(ivan.patronymic, "Сергеевич");
+        QCOMPARE(ivan.phone, "+79001234567");
+        QCOMPARE(ivan.birthDate, QDate(1990, 5, 15));
+
+        auto extraPhones = personRepo->getPhoneNumbers(ivan.id);
+        QCOMPARE(extraPhones.size(), 1);
+        QCOMPARE(extraPhones[0].number, "+74951234567");
+
+        auto emails = personRepo->getEmails(ivan.id);
+        QCOMPARE(emails.size(), 1);
+        QCOMPARE(emails[0].address, "ivan@example.com");
+
+        Person anna;
+        for (const auto &p : people)
+            if (p.firstName == "Анна") anna = p;
+        QCOMPARE(anna.lastName, "Смирнова");
+        QCOMPARE(anna.phone, "+79997654321");
+
+        // Re-importing the same file must skip both (exact duplicate).
+        skipped = 0;
+        imported = dataSvc.importPeopleVCard(vcfPath, &skipped);
+        QCOMPARE(imported, 0);
+        QCOMPARE(skipped, 2);
+        QCOMPARE(personRepo->getAll().size(), 2); // no duplicates created
+    }
 };
 
 QObject* createTestServices() { return new TestServices(); }

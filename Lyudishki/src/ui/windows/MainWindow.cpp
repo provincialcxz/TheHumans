@@ -118,6 +118,9 @@ void MainWindow::setupMenuBar()
     auto *importAction = fileMenu->addAction("Импорт людей (JSON)...");
     connect(importAction, &QAction::triggered, this, &MainWindow::onImportPeople);
 
+    auto *importVCardAction = fileMenu->addAction("Импорт из телефонной книги (vCard)...");
+    connect(importVCardAction, &QAction::triggered, this, &MainWindow::onImportVCard);
+
     fileMenu->addSeparator();
 
     auto *backupAction = fileMenu->addAction("Создать бэкап...");
@@ -436,6 +439,26 @@ void MainWindow::onImportPeople()
 
     int skipped = 0;
     int count = m_ctx.dataService()->importPeopleJson(path, &skipped);
+    if (count >= 0) {
+        QString msg = "Импортировано: " + QString::number(count) + " чел.";
+        if (skipped > 0)
+            msg += "\nПропущено (уже есть в базе): " + QString::number(skipped) + " чел.";
+        QMessageBox::information(this, "Импорт", msg);
+        populateGroups();
+        m_listView->refresh();
+    } else {
+        QMessageBox::warning(this, "Ошибка", "Не удалось импортировать файл.");
+    }
+}
+
+void MainWindow::onImportVCard()
+{
+    QString path = QFileDialog::getOpenFileName(this, "Импорт из телефонной книги", {},
+                                                 "vCard (*.vcf)");
+    if (path.isEmpty()) return;
+
+    int skipped = 0;
+    int count = m_ctx.dataService()->importPeopleVCard(path, &skipped);
     if (count >= 0) {
         QString msg = "Импортировано: " + QString::number(count) + " чел.";
         if (skipped > 0)

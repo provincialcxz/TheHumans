@@ -41,6 +41,7 @@ private slots:
     void onDeleteGroup();
     void onExportPeople();
     void onImportPeople();
+    void onImportVCard();
     void onCreateBackup();
     void onRestoreBackup();
 

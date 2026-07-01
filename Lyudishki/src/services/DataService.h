@@ -20,6 +20,15 @@ public:
     // skippedCount, if provided, receives the number of exact-match skips.
     int importPeopleJson(const QString &filePath, int *skippedCount = nullptr);
 
+    // Imports people from an RFC 6350 vCard (.vcf) file — the standard
+    // "export contacts" format from phone address books. Reads name, phone
+    // numbers, emails and birthday per vCard; the first TEL becomes
+    // Person::phone, any further TEL/EMAIL entries become additional phone
+    // numbers/emails. Uses the same (lastName, firstName, birthDate) dedup
+    // as importPeopleJson. Returns the number of people added, or -1 if the
+    // file couldn't be read.
+    int importPeopleVCard(const QString &filePath, int *skippedCount = nullptr);
+
     static bool createBackup(const QString &dbPath, const QString &backupDir);
     static bool restoreBackup(const QString &backupFile, const QString &dbPath);
 
