@@ -76,6 +76,8 @@ set(UI_SOURCES
     src/ui/widgets/SocialIcon.cpp
     src/ui/widgets/PersonGraphView.h
     src/ui/widgets/PersonGraphView.cpp
+    src/ui/widgets/PersonGraphNode.h
+    src/ui/widgets/PersonGraphNode.cpp
     src/ui/dialogs/PersonGraphDialog.h
     src/ui/dialogs/PersonGraphDialog.cpp
 )
