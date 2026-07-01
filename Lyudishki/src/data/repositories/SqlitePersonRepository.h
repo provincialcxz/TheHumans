@@ -56,6 +56,7 @@ public:
     bool removeTagFromPerson(int personId, int tagId) override;
 
     QVector<PersonRelation> getRelationsForPerson(int personId) override;
+    QVector<PersonRelation> getAllRelations() override;
     int addRelation(const PersonRelation &relation) override;
     bool removeRelation(int id) override;
 

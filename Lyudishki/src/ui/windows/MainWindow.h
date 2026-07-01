@@ -42,6 +42,7 @@ private slots:
     void onExportPeople();
     void onImportPeople();
     void onImportVCard();
+    void onShowRelationGraph();
     void onCreateBackup();
     void onRestoreBackup();
 

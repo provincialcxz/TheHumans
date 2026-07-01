@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "ui_main_window.h"
+#include "ui/dialogs/PersonGraphDialog.h"
 #include <QMouseEvent>
 #include <QCloseEvent>
 #include <QMessageBox>
@@ -139,6 +140,10 @@ void MainWindow::setupMenuBar()
 
     auto *quitAction = fileMenu->addAction("Выход");
     connect(quitAction, &QAction::triggered, qApp, &QApplication::quit);
+
+    auto *viewMenu = menuBar->addMenu("Вид");
+    auto *graphAction = viewMenu->addAction("Граф связей...");
+    connect(graphAction, &QAction::triggered, this, &MainWindow::onShowRelationGraph);
 }
 
 void MainWindow::setupTrayIcon()
@@ -470,6 +475,13 @@ void MainWindow::onImportVCard()
     } else {
         QMessageBox::warning(this, "Ошибка", "Не удалось импортировать файл.");
     }
+}
+
+void MainWindow::onShowRelationGraph()
+{
+    PersonGraphDialog dlg(m_ctx.peopleService(), this);
+    connect(&dlg, &PersonGraphDialog::personSelected, this, &MainWindow::onPersonSelected);
+    dlg.exec();
 }
 
 void MainWindow::onCreateBackup()

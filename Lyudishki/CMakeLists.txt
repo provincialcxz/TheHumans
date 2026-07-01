@@ -74,6 +74,10 @@ set(UI_SOURCES
     src/ui/views/PersonEditView.cpp
     src/ui/widgets/SocialIcon.h
     src/ui/widgets/SocialIcon.cpp
+    src/ui/widgets/PersonGraphView.h
+    src/ui/widgets/PersonGraphView.cpp
+    src/ui/dialogs/PersonGraphDialog.h
+    src/ui/dialogs/PersonGraphDialog.cpp
 )
 
 set(FORM_FILES

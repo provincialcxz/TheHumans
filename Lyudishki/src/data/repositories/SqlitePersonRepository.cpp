@@ -629,6 +629,24 @@ QVector<PersonRelation> SqlitePersonRepository::getRelationsForPerson(int person
     return result;
 }
 
+QVector<PersonRelation> SqlitePersonRepository::getAllRelations()
+{
+    QVector<PersonRelation> result;
+    QSqlQuery q(m_db);
+    if (!q.exec("SELECT id, person_a_id, person_b_id, relation_type, note FROM person_relations"))
+        qWarning("SqlitePersonRepository::getAllRelations: %s", qPrintable(q.lastError().text()));
+    while (q.next()) {
+        PersonRelation r;
+        r.id = q.value(0).toInt();
+        r.personAId = q.value(1).toInt();
+        r.personBId = q.value(2).toInt();
+        r.relationType = q.value(3).toString();
+        r.note = q.value(4).toString();
+        result.append(r);
+    }
+    return result;
+}
+
 int SqlitePersonRepository::addRelation(const PersonRelation &relation)
 {
     QSqlQuery q(m_db);

@@ -92,6 +92,7 @@ public:
     // Relations (person-to-person: family, friend, colleague...). Undirected —
     // a relation is stored once and returned for either side of the pair.
     virtual QVector<PersonRelation> getRelationsForPerson(int personId) = 0;
+    virtual QVector<PersonRelation> getAllRelations() = 0;
     virtual int addRelation(const PersonRelation &relation) = 0;
     virtual bool removeRelation(int id) = 0;
 

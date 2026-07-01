@@ -335,6 +335,29 @@ private slots:
         QCOMPARE(repo.getRelationsForPerson(pid2).size(), 0);
     }
 
+    void testGetAllRelations()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        SqlitePersonRepository repo(dbm.database());
+
+        Person p1; p1.groupId = 1; p1.firstName = "A"; p1.lastName = "One";
+        int pid1 = repo.add(p1);
+        Person p2; p2.groupId = 1; p2.firstName = "B"; p2.lastName = "Two";
+        int pid2 = repo.add(p2);
+        Person p3; p3.groupId = 1; p3.firstName = "C"; p3.lastName = "Three";
+        int pid3 = repo.add(p3);
+
+        PersonRelation r1; r1.personAId = pid1; r1.personBId = pid2; r1.relationType = "Друг";
+        repo.addRelation(r1);
+        PersonRelation r2; r2.personAId = pid2; r2.personBId = pid3; r2.relationType = "Коллега";
+        repo.addRelation(r2);
+
+        QCOMPARE(repo.getAllRelations().size(), 2); // graph-wide, not scoped to one person
+    }
+
     void testRelationshipStatusHistory()
     {
         DatabaseManager dbm(":memory:");

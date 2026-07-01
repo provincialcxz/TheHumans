@@ -183,6 +183,11 @@ QVector<PersonRelation> PeopleService::getRelationsForPerson(int personId)
     return m_repo->getRelationsForPerson(personId);
 }
 
+QVector<PersonRelation> PeopleService::getAllRelations()
+{
+    return m_repo->getAllRelations();
+}
+
 int PeopleService::addRelation(int personAId, int personBId, const QString &relationType, const QString &note)
 {
     PersonRelation r;
