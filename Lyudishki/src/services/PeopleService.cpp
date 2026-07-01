@@ -127,6 +127,21 @@ bool PeopleService::removeEmail(int id)
     return m_repo->removeEmail(id);
 }
 
+QVector<PersonDocument> PeopleService::getDocuments(int personId)
+{
+    return m_repo->getDocuments(personId);
+}
+
+int PeopleService::addDocument(const PersonDocument &document)
+{
+    return m_repo->addDocument(document);
+}
+
+bool PeopleService::removeDocument(int id)
+{
+    return m_repo->removeDocument(id);
+}
+
 QVector<PhoneNumber> PeopleService::getPhoneNumbers(int personId)
 {
     return m_repo->getPhoneNumbers(personId);

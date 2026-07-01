@@ -40,6 +40,10 @@ public:
     int addFile(const PersonFile &file) override;
     bool removeFile(int id) override;
 
+    QVector<PersonDocument> getDocuments(int personId) override;
+    int addDocument(const PersonDocument &document) override;
+    bool removeDocument(int id) override;
+
     QVector<PersonEvent> getEvents(int personId) override;
     QVector<PersonEvent> getAllEvents() override;
     int addEvent(const PersonEvent &event) override;

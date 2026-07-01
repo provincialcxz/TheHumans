@@ -10,6 +10,7 @@
 #include "domain/PhoneNumber.h"
 #include "domain/PersonNote.h"
 #include "domain/PersonFile.h"
+#include "domain/PersonDocument.h"
 
 class IPersonRepository {
 public:
@@ -60,6 +61,11 @@ public:
     virtual PersonFile getFileById(int id) = 0;
     virtual int addFile(const PersonFile &file) = 0;
     virtual bool removeFile(int id) = 0;
+
+    // Documents (passport, SNILS, bank details, etc.)
+    virtual QVector<PersonDocument> getDocuments(int personId) = 0;
+    virtual int addDocument(const PersonDocument &document) = 0;
+    virtual bool removeDocument(int id) = 0;
 
     // Events
     virtual QVector<PersonEvent> getEvents(int personId) = 0;

@@ -46,6 +46,10 @@ public:
     int attachFile(int personId, const QString &sourceFilePath);
     bool removeFile(int id);
 
+    QVector<PersonDocument> getDocuments(int personId);
+    int addDocument(const PersonDocument &document);
+    bool removeDocument(int id);
+
     QVector<PersonEvent> getEvents(int personId);
     QVector<PersonEvent> getAllEvents();
     int addEvent(const PersonEvent &event);

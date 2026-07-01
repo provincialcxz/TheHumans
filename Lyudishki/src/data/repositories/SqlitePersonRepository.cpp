@@ -367,6 +367,55 @@ bool SqlitePersonRepository::removeEmail(int id)
     return true;
 }
 
+// --- Documents ---
+
+QVector<PersonDocument> SqlitePersonRepository::getDocuments(int personId)
+{
+    QVector<PersonDocument> result;
+    QSqlQuery q(m_db);
+    q.prepare("SELECT id, person_id, type, value, note FROM person_documents WHERE person_id = ?");
+    q.addBindValue(personId);
+    if (!q.exec())
+        qWarning("SqlitePersonRepository::getDocuments: %s", qPrintable(q.lastError().text()));
+    while (q.next()) {
+        PersonDocument d;
+        d.id = q.value(0).toInt();
+        d.personId = q.value(1).toInt();
+        d.type = q.value(2).toString();
+        d.value = q.value(3).toString();
+        d.note = q.value(4).toString();
+        result.append(d);
+    }
+    return result;
+}
+
+int SqlitePersonRepository::addDocument(const PersonDocument &document)
+{
+    QSqlQuery q(m_db);
+    q.prepare("INSERT INTO person_documents (person_id, type, value, note) VALUES (?,?,?,?)");
+    q.addBindValue(document.personId);
+    q.addBindValue(document.type);
+    q.addBindValue(document.value);
+    q.addBindValue(document.note);
+    if (!q.exec()) {
+        qWarning("addDocument: %s", qPrintable(q.lastError().text()));
+        return -1;
+    }
+    return q.lastInsertId().toInt();
+}
+
+bool SqlitePersonRepository::removeDocument(int id)
+{
+    QSqlQuery q(m_db);
+    q.prepare("DELETE FROM person_documents WHERE id = ?");
+    q.addBindValue(id);
+    if (!q.exec()) {
+        qWarning("SqlitePersonRepository::removeDocument: %s", qPrintable(q.lastError().text()));
+        return false;
+    }
+    return true;
+}
+
 // --- Phone Numbers ---
 
 QVector<PhoneNumber> SqlitePersonRepository::getPhoneNumbers(int personId)

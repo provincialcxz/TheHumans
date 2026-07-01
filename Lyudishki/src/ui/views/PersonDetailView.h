@@ -46,6 +46,7 @@ private:
     void buildFilesSection(int personId);
     void buildNotesSection(int personId);
     void buildEventsSection(int personId);
+    void buildDocumentsSection(int personId);
 
     void onAddPhone();
     void onDeletePhone(int id);
@@ -59,4 +60,6 @@ private:
     void onDeleteNote(int id);
     void onAddEvent();
     void onDeleteEvent(int eventId);
+    void onAddDocument();
+    void onDeleteDocument(int id);
 };

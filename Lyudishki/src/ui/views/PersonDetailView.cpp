@@ -111,6 +111,7 @@ void PersonDetailView::populateLeftColumn(int personId)
     buildFilesSection(personId);
     buildNotesSection(personId);
     buildEventsSection(personId);
+    buildDocumentsSection(personId);
 
     if (auto *vbox = qobject_cast<QVBoxLayout *>(ui->bottomLeftWidget->layout()))
         vbox->addStretch(1);
@@ -372,6 +373,92 @@ void PersonDetailView::onDeleteEmail(int id)
                                         QMessageBox::Yes | QMessageBox::No);
     if (reply == QMessageBox::Yes) {
         m_peopleService->removeEmail(id);
+        populateLeftColumn(m_currentPersonId);
+    }
+}
+
+// --- Documents ---
+
+void PersonDetailView::buildDocumentsSection(int personId)
+{
+    addLeftSectionHeader("Документы:");
+    auto documents = m_peopleService->getDocuments(personId);
+
+    if (documents.isEmpty()) {
+        auto *lbl = new QLabel("—", ui->bottomLeftWidget);
+        lbl->setStyleSheet("color: #7d8c7d;");
+        ui->bottomLeftWidget->layout()->addWidget(lbl);
+    } else {
+        for (const auto &d : documents) {
+            auto *row = new QWidget(ui->bottomLeftWidget);
+            auto *rl = new QHBoxLayout(row);
+            rl->setContentsMargins(0, 1, 0, 1);
+            rl->setSpacing(6);
+
+            QString text = d.type.isEmpty() ? d.value : d.type + ": " + d.value;
+            if (!d.note.isEmpty()) text += " (" + d.note + ")";
+            auto *lbl = new QLabel(text.toHtmlEscaped(), row);
+            lbl->setStyleSheet("font-size: 13px;");
+            lbl->setWordWrap(true);
+            lbl->setTextInteractionFlags(Qt::TextSelectableByMouse);
+            rl->addWidget(lbl, 1);
+
+            auto *delBtn = new QPushButton("×", row);
+            delBtn->setFixedSize(20, 20);
+            delBtn->setStyleSheet("color: #ff3b30; border: 1px solid #ff3b30; font-size: 12px; padding: 0;");
+            int dId = d.id;
+            connect(delBtn, &QPushButton::clicked, this, [this, dId]() { onDeleteDocument(dId); });
+            rl->addWidget(delBtn);
+
+            ui->bottomLeftWidget->layout()->addWidget(row);
+        }
+    }
+
+    auto *addBtn = new QPushButton("+ документ", ui->bottomLeftWidget);
+    addBtn->setStyleSheet("color: #1b9e4b; border: 1px solid #1f2a1f; padding: 3px 8px; font-size: 12px;");
+    connect(addBtn, &QPushButton::clicked, this, &PersonDetailView::onAddDocument);
+    ui->bottomLeftWidget->layout()->addWidget(addBtn);
+}
+
+void PersonDetailView::onAddDocument()
+{
+    QDialog dlg(this);
+    dlg.setWindowTitle("Документ");
+    auto *layout = new QFormLayout(&dlg);
+
+    auto *typeCombo = new QComboBox(&dlg);
+    typeCombo->setEditable(true);
+    typeCombo->addItems({"Паспорт", "СНИЛС", "ИНН", "Загранпаспорт", "Банковские реквизиты"});
+    typeCombo->setCurrentIndex(-1);
+    auto *valueEdit = new QLineEdit(&dlg);
+    auto *noteEdit = new QLineEdit(&dlg);
+    layout->addRow("Тип:", typeCombo);
+    layout->addRow("Значение:", valueEdit);
+    layout->addRow("Заметка:", noteEdit);
+
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dlg);
+    connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+    layout->addRow(buttons);
+
+    if (dlg.exec() != QDialog::Accepted) return;
+    if (valueEdit->text().trimmed().isEmpty()) return;
+
+    PersonDocument d;
+    d.personId = m_currentPersonId;
+    d.type = typeCombo->currentText().trimmed();
+    d.value = valueEdit->text().trimmed();
+    d.note = noteEdit->text().trimmed();
+    m_peopleService->addDocument(d);
+    populateLeftColumn(m_currentPersonId);
+}
+
+void PersonDetailView::onDeleteDocument(int id)
+{
+    auto reply = QMessageBox::question(this, "Удаление", "Удалить документ?",
+                                        QMessageBox::Yes | QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        m_peopleService->removeDocument(id);
         populateLeftColumn(m_currentPersonId);
     }
 }
