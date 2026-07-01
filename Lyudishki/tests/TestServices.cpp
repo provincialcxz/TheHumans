@@ -68,6 +68,26 @@ private slots:
         QCOMPARE(svc.getAllPeople().size(), 0);
     }
 
+    void testMarkContactedNow()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        auto repo = std::make_shared<SqlitePersonRepository>(dbm.database());
+        PeopleService svc(repo);
+
+        Person p;
+        p.groupId = 1;
+        p.firstName = "Давно";
+        p.lastName = "НеВидел";
+        int id = svc.addPerson(p);
+        QVERIFY(!svc.getPerson(id).lastContactDate.isValid());
+
+        QVERIFY(svc.markContactedNow(id));
+        QCOMPARE(svc.getPerson(id).lastContactDate, QDate::currentDate());
+    }
+
     void testSearchService()
     {
         DatabaseManager dbm(":memory:");

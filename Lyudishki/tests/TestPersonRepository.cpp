@@ -293,6 +293,105 @@ private slots:
         QCOMPARE(map.value(pid1), "Высокая");
         QCOMPARE(map.value(pid2), "Низкая");
     }
+
+    void testDocuments()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        SqlitePersonRepository repo(dbm.database());
+
+        Person p;
+        p.groupId = 1;
+        p.firstName = "Doc";
+        p.lastName = "Test";
+        int pid = repo.add(p);
+
+        PersonDocument d;
+        d.personId = pid;
+        d.type = "Паспорт";
+        d.value = "1234 567890";
+        d.note = "выдан в 2015";
+        int did = repo.addDocument(d);
+        QVERIFY(did > 0);
+
+        auto docs = repo.getDocuments(pid);
+        QCOMPARE(docs.size(), 1);
+        QCOMPARE(docs[0].type, "Паспорт");
+        QCOMPARE(docs[0].value, "1234 567890");
+
+        QVERIFY(repo.removeDocument(did));
+        QCOMPARE(repo.getDocuments(pid).size(), 0);
+    }
+
+    void testTags()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        SqlitePersonRepository repo(dbm.database());
+
+        Person p1;
+        p1.groupId = 1;
+        p1.firstName = "Tag";
+        p1.lastName = "One";
+        int pid1 = repo.add(p1);
+
+        Person p2;
+        p2.groupId = 1;
+        p2.firstName = "Tag";
+        p2.lastName = "Two";
+        int pid2 = repo.add(p2);
+
+        int tagId = repo.addTagToPerson(pid1, "важное");
+        QVERIFY(tagId > 0);
+
+        // Same tag name attached to a second person must reuse the existing
+        // tag row, not create a duplicate.
+        int tagId2 = repo.addTagToPerson(pid2, "важное");
+        QCOMPARE(tagId2, tagId);
+        QCOMPARE(repo.getAllTags().size(), 1);
+
+        auto tags1 = repo.getTagsForPerson(pid1);
+        QCOMPARE(tags1.size(), 1);
+        QCOMPARE(tags1[0].name, "важное");
+
+        QVERIFY(repo.removeTagFromPerson(pid1, tagId));
+        QCOMPARE(repo.getTagsForPerson(pid1).size(), 0);
+        // Removing the tag from one person must not affect the other.
+        QCOMPARE(repo.getTagsForPerson(pid2).size(), 1);
+    }
+
+    void testMetInPersonAndLastContact()
+    {
+        DatabaseManager dbm(":memory:");
+        MigrationManager mm(dbm.database());
+        mm.migrate();
+
+        SqlitePersonRepository repo(dbm.database());
+
+        Person p;
+        p.groupId = 1;
+        p.firstName = "Contact";
+        p.lastName = "Test";
+        p.metInPerson = true;
+        p.lastContactDate = QDate(2026, 1, 15);
+        int pid = repo.add(p);
+
+        auto fetched = repo.getById(pid);
+        QVERIFY(fetched.metInPerson);
+        QCOMPARE(fetched.lastContactDate, QDate(2026, 1, 15));
+
+        fetched.metInPerson = false;
+        fetched.lastContactDate = QDate();
+        QVERIFY(repo.update(fetched));
+
+        auto refetched = repo.getById(pid);
+        QVERIFY(!refetched.metInPerson);
+        QVERIFY(!refetched.lastContactDate.isValid());
+    }
 };
 
 QObject* createTestPersonRepository() { return new TestPersonRepository(); }
