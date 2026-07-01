@@ -36,6 +36,7 @@ bool DataService::exportPeopleJson(const QString &filePath)
         obj["habits"] = p.habits;
         obj["hobbies"] = p.hobbies;
         obj["note"] = p.note;
+        obj["metInPerson"] = p.metInPerson;
         obj["photoPath"] = p.photoPath;
 
         // Social accounts
@@ -196,6 +197,7 @@ int DataService::importPeopleJson(const QString &filePath, int *skippedCount)
         p.habits = obj["habits"].toString();
         p.hobbies = obj["hobbies"].toString();
         p.note = obj["note"].toString();
+        p.metInPerson = obj["metInPerson"].toBool();
         p.photoPath = obj["photoPath"].toString();
 
         int pid = m_personRepo->add(p);

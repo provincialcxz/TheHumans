@@ -51,6 +51,7 @@ void PersonDetailView::showPerson(int personId)
     ui->valPhone->setText(p.phone.isEmpty() ? "—" : p.phone);
     ui->valContact->setText(p.primaryContactMethod.isEmpty() ? "—" : p.primaryContactMethod);
     ui->valAddress->setText(p.address.isEmpty() ? "—" : p.address);
+    ui->valMetInPerson->setText(p.metInPerson ? "Да" : "Нет");
 
     // Photo
     if (!p.photoPath.isEmpty() && QFile::exists(p.photoPath)) {

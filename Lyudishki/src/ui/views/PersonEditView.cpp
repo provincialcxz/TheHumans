@@ -54,6 +54,7 @@ void PersonEditView::startNew(int defaultGroupId)
     ui->editContactMethod->setCurrentText("");
     ui->editAddress->clear();
     ui->editNote->clear();
+    ui->editMetInPerson->setChecked(false);
     ui->editHabits->clear();
     ui->editHobbies->clear();
     ui->photoPreview->setText("—");
@@ -108,6 +109,7 @@ void PersonEditView::loadPerson(int personId)
     ui->editContactMethod->setCurrentText(p.primaryContactMethod);
     ui->editAddress->setText(p.address);
     ui->editNote->setText(p.note);
+    ui->editMetInPerson->setChecked(p.metInPerson);
     ui->editHabits->setText(p.habits);
     ui->editHobbies->setText(p.hobbies);
     m_photoPath = p.photoPath;
@@ -188,6 +190,7 @@ void PersonEditView::onSave()
     p.primaryContactMethod = ui->editContactMethod->currentText().trimmed();
     p.address = ui->editAddress->text().trimmed();
     p.note = ui->editNote->text().trimmed();
+    p.metInPerson = ui->editMetInPerson->isChecked();
     p.habits = ui->editHabits->toPlainText().trimmed();
     p.hobbies = ui->editHobbies->toPlainText().trimmed();
 

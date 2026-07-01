@@ -10,7 +10,7 @@ MigrationManager::MigrationManager(QSqlDatabase &db)
 bool MigrationManager::migrate()
 {
     int ver = currentVersion();
-    const int targetVersion = 6;
+    const int targetVersion = 7;
     while (ver < targetVersion) {
         int next = ver + 1;
         qInfo("MigrationManager: running migration v%d", next);
@@ -48,6 +48,7 @@ bool MigrationManager::runMigration(int version)
     case 4: return migration_v4();
     case 5: return migration_v5();
     case 6: return migration_v6();
+    case 7: return migration_v7();
     default: return false;
     }
 }
@@ -389,6 +390,26 @@ bool MigrationManager::migration_v6()
     for (const auto &sql : statements) {
         if (!q.exec(sql)) {
             qWarning("Migration v6 failed: %s\nSQL: %s",
+                     qPrintable(q.lastError().text()), qPrintable(sql));
+            m_db.rollback();
+            return false;
+        }
+    }
+    m_db.commit();
+    return true;
+}
+
+bool MigrationManager::migration_v7()
+{
+    QSqlQuery q(m_db);
+    QStringList statements = {
+        "ALTER TABLE person ADD COLUMN met_in_person INTEGER DEFAULT 0",
+    };
+
+    m_db.transaction();
+    for (const auto &sql : statements) {
+        if (!q.exec(sql)) {
+            qWarning("Migration v7 failed: %s\nSQL: %s",
                      qPrintable(q.lastError().text()), qPrintable(sql));
             m_db.rollback();
             return false;

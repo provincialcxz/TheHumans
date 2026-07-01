@@ -18,5 +18,6 @@ struct Person {
     QString habits;
     QString hobbies;
     QString note;
+    bool metInPerson = false;
     QDateTime createdAt;
 };
